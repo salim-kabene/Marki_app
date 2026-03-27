@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de patients</title>
+    <link rel="stylesheet" href="../public/assets/css/styles.css">
+</head>
+
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header__profile">
+                <div class="avatar">
+                    <img src="../public/assets/icons/avatar_docteur01.svg" alt="MD">
+                </div>
+                <div class="profile-info">
+                    <h1>Dr. Martin Durant</h1>
+                    <p>Médecin Généraliste</p>
+                </div>
+            </div>
+            <div class="header__datetime">
+                <p class="date">vendredi 28 février</p>
+                <p class="time">16:09</p>
+            </div>
+        </header>
+
+        <div class="layout">
+            <!-- Sidebar -->
+            <nav class="sidebar">
+                <ul class="sidebar__menu ">
+                    <li class="sidebar__item " data-page="dashboard">
+                        <i class="icon">
+                            <img src="../public/assets/icons/icons_nav/dashboard03.svg"></img>
+                        </i>
+                        <span>Liste du jour</span>
+                    </li>
+                    <li class="sidebar__item" data-page="patients">
+                        <i class="icon">
+                            <img src="../public/assets/icons/icons_nav/patient01.png" alt="">
+                        </i>
+                        <span>Mes Patients</span>
+                    </li>
+                    <li class="sidebar__item active" data-page="lists">
+                        <i class="icon">
+                            <img src="../public/assets/icons/icons_nav/listPatients.png" alt="">
+                        </i>
+                        <span>Toutes les listes</span>
+                    </li>
+                    <li class="sidebar__item" data-page="settings">
+                        <i class="icon">
+                            <img src="../public/assets/icons/icons_nav/parametres.png" alt="">
+                        </i>
+                        <span>Paramètres</span>
+                    </li>
+                </ul>
+            </nav>
+            <!-- Contenu principal -->
+            <div class="main-content" id="main-content">
+                <!-- Le contenu de la page sera chargé ici -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../public/assets/js/app.js"></script>
+</body>
+
+</html>

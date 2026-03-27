@@ -1,0 +1,156 @@
+// Variables
+$primary-color: #8e44ad; // Couleur principale
+$light-gray: #f5f5f5;
+$medium-gray: #e0e0e0;
+$dark-gray: #757575;
+$text-color: #333;
+$border-radius: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+
+// Page Toutes les listes
+.listes-page {
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: $spacing-md;
+    
+    .listes-header {
+        display: flex;
+        justify-content: space-between;
+        vertical-align: middle;
+        margin-bottom: $spacing-lg;
+        width: 100%;
+        
+        h1 {
+            padding-top: $spacing-xs;
+            font-size: $font-size-h4;
+            font-weight: bold;
+            color: $text-primary;
+            margin-bottom: $spacing-xs;
+        }
+
+        p {
+            font-size: $font-size-small;
+            color: $dark-gray;
+            margin: 0;
+        }
+    }
+    .lists-body{
+        display: flex;
+        align-items: center;
+    }
+    .date-selector {
+        display: flex;
+        align-items: center;
+
+        .date-nav {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: $primary-color;
+            margin: 0 $spacing-md;
+
+            &:hover {
+                color: darken($primary-color, 10%);
+            }
+        }
+
+        .current-date {
+            font-size: 18px;
+            font-weight: 500;
+            color: $text-color;
+        }
+    }
+    .today-button {
+        padding: $spacing-sm $spacing-lg;
+        background-color: darken($bg-secondary, 3%);
+        border-radius: $border-radius;
+        color: $text-secondary;
+        cursor: pointer;
+    }
+    .list-container {
+        background: white;
+        border-radius: $border-radius;
+        border: 1px solid $medium-gray;
+        padding: $spacing-lg;
+        min-height: 150px;
+        margin-bottom: $spacing-lg;
+
+        .empty-list-message {
+            padding-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            color: $dark-gray;
+            font-size: 16px;
+            p{
+                margin-bottom: 0;
+            }
+            img{
+                width: 32px;
+            }
+        }
+    }
+    .appointments-future {
+        border: 1px solid $medium-gray;
+        border-radius: $border-radius;
+        .titre__header {
+            color: $text-color;
+            padding: $spacing-md $spacing-lg;
+        }
+        .appointments__content{
+            padding: $spacing-md $spacing-lg;
+        }
+        table {
+            width: 100%;
+            border-radius: $radius;
+            border-collapse: collapse;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: $spacing-lg;
+
+            th, td {
+                padding: $spacing-md;
+                text-align: left;
+                border-bottom: 1px solid $medium-gray;
+            }
+
+            th {
+                background-color: $light-gray;
+                font-weight: 500;
+                font-size: $font-size-small;
+                color: $dark-gray;
+            }
+
+            td {
+                color: $dark-gray;
+                text-align: center;
+
+                &:first-child {
+                    text-align: left;
+                }
+            }
+            th:nth-child(1){
+                text-align: left;
+                padding-left: 100px;
+            }
+            th:nth-child(2){
+                text-align: center;
+            }
+            th:nth-child(3){
+                text-align: right;
+                padding-right: 100px;
+            }
+            .empty-row {
+                td {
+                    padding: $spacing-lg * 2;
+                    text-align: center;
+                    color: $dark-gray;
+                    font-size: $font-size-small;
+                }
+            }
+        }
+    }
+}

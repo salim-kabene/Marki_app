@@ -1,0 +1,155 @@
+/* components/_settings.scss */
+.settings-page {
+    background-color: $bg-primary;
+    padding: $spacing-md;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .settings-header {
+    margin-bottom: $spacing-lg;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    h1 {
+      font-size: $font-size-h4;
+      font-weight: bold;
+      color: $text-primary;
+      margin-bottom: $spacing-xs;
+    }
+    
+    p {
+      color: $text-secondary;
+      font-size: $font-size-small;
+    }
+  }
+  .titre_section{
+    padding: $spacing-xs 0;
+  }
+  .settings-card {
+    background-color: $bg-primary;
+    border-radius: $radius;
+    box-shadow: $shadow;
+    border: 1px solid $secondary-light;
+    
+    &__header {
+      display: flex;
+      align-items: center;
+      padding: $spacing-md;
+      align-items: center;
+
+      .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: $primary-light;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        img {
+          width: 40px;
+          height: 40px;
+        }
+      }
+      
+      h2 {
+        padding-left: $spacing-md;
+        margin-bottom: 0;
+        font-size: $font-size-h4;
+        font-weight: $font-weight-semibold;
+        color: $text-primary;
+      }
+    }
+    
+    &__content {
+      padding: $spacing-lg;
+    }
+  }
+  
+  .settings-row {
+    display: flex; // Utilisez Flexbox pour une meilleure responsivité
+    flex-wrap: wrap; // Permet aux éléments de passer à la ligne si nécessaire
+    margin-bottom: $spacing-md;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    .settings-field {
+        flex: 1; // Permet aux champs de s'étendre
+        min-width: 200px; // Largeur minimale pour éviter que les champs ne deviennent trop petits
+    }
+
+    .settings-field.wide {
+        flex-basis: 100%; // Prend toute la largeur pour l'adresse
+    }
+    .settings-field.wide input{
+      width: 100%; // Prend toute la largeur pour l'adresse
+  }
+  }
+  
+  .settings-field {
+    label {
+      display: block;
+      font-size: 0.875rem;
+      color: $text-secondary;
+      margin-bottom: $spacing-xs;
+    }
+    
+    input {
+      font-size: 1rem;
+      min-width: 300px;
+      color: $text-primary;
+      padding: $spacing-xs $spacing-md;
+      border-radius: $radius;
+      border: 2px solid transparent;
+      box-shadow: $shadow;
+      background: $bg-op-90;
+      font-weight: $font-weight-medium;
+    }
+    input:focus{
+      outline: none;
+      box-shadow: none;
+      border-bottom: 2px solid $primary;
+    }
+  }
+  
+  .settings-actions {
+    margin-bottom: $spacing-lg;
+  }
+  
+  .btn {
+    display: flex;
+    padding: $spacing-sm $spacing-lg;
+    border-radius: $radius-full;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    border: none;
+    
+    &-primary {
+      background-color: $primary;
+      color: white;
+      
+      &:hover {
+        background-color: darken($primary, 5%);
+      }
+      &:active {
+        transform: scale(0.95); // Réduit légèrement la taille du bouton lors du clic
+      }
+
+      .icon {
+        width: 24px;
+        height: 24px;
+        font-size: 1.2rem;
+        transition: transform 0.3s, color 0.3s; // Transition pour l'icône
+      }
+
+      &.clicked .icon {
+        transform: rotate(180deg); // Fait tourner l'icône
+        color: $secondary; // Change la couleur de l'icône
+      }
+    }
+  }

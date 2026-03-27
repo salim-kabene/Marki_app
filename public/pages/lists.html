@@ -1,0 +1,52 @@
+<!-- lists.html -->
+<div class="listes-page">
+    <div class="listes-header">
+        <div>
+            <h1>Toutes les listes</h1>
+            <p>Consultez les listes par date</p>
+        </div>
+        <div class="lists-body">
+            <div class="date-selector">
+                <button class="date-nav prev">◀</button>
+                <span class="current-date">2025-04-03</span>
+                <button class="date-nav next">▶</button>
+            </div>
+
+            <button class="today-button">Aujourd'hui</button>
+
+            <!-- <button class="btn-primary">
+                <img src="assets/main_content/ajoutrerPatient.png" class="icon-plus"></img>
+                <span>Nouveau Patient</span>
+            </button> -->
+        </div>
+    </div>
+
+    <div class="list-container">
+        <div class="empty-list-message">
+            <img src="assets/icons/lists/AucuneInfo.png" alt="">
+            <p>Aucune liste disponible pour cette date</p>
+        </div>
+    </div>
+
+    <div class="appointments-future">
+        <div class="titre__header">
+            <h2>Rendez-vous futurs</h2>
+        </div>
+        <div class="appointments__content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PATIENT</th>
+                        <th>DATE DU RENDEZ-VOUS</th>
+                        <th>DÉTAILS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="empty-row">
+                        <td colspan="3">Aucun rendez-vous futur</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

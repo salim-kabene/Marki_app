@@ -1,0 +1,34 @@
+/* layout/app.scss */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  padding: $spacing-md;
+  gap: $spacing-md;
+  overflow: hidden;
+}
+
+.patient-details {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  overflow: auto;
+}

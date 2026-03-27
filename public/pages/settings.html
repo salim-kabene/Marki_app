@@ -1,0 +1,61 @@
+<div class="settings-page">
+  <div class="settings-header">
+    <div class="titre_section">
+      <h1>Paramètres</h1>
+      <p>Gérez les informations de votre cabinet</p>
+    </div>
+    <div class="settings-actions">
+      <button class="btn btn-primary" id="save-button">
+        <img src="assets/icons/paramettres/enregistrer.svg" class="icon"></img>
+        Enregistrer
+      </button>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <div class="settings-card__header">
+      <div class="icon-circle">
+        <img src="assets/icons/paramettres/profil_Infos.png" alt="">
+      </div>
+      <h2>Informations personnelles</h2>
+    </div>
+
+    <div class="settings-card__content">
+      <div class="settings-row">
+        <div class="settings-field">
+          <label for="nom-prenom">Nom et Prénom</label>
+          <input id="nom-prenom" type="text" value="Dr. Martin Durant" autocomplete="name" />
+        </div>
+        <div class="settings-field">
+          <label for="specialite">Spécialité</label>
+          <input id="specialite" type="text" value="Médecin Généraliste" autocomplete="organization-title" />
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-field">
+          <label for="telephone">Téléphone</label>
+          <input id="telephone" type="tel" value="+213 551 45 67 89" autocomplete="tel" />
+        </div>
+        <div class="settings-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" value="dr.durant@cabinet-medical.fr" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-field wide">
+          <label for="adresse">Adresse du cabinet</label>
+          <input id="adresse" type="text" value="15 rue de la Santé, 75001 Paris" autocomplete="address-line1" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div class="settings-actions">
+      <button class="btn btn-primary" id="save-button">
+        <img src="assets/paramettres/enregistrer.svg" class="icon"></img>
+        Enregistrer
+      </button>
+    </div> -->
+</div>

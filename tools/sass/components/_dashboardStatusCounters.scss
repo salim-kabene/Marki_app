@@ -1,0 +1,75 @@
+/* components/status-counters.scss */
+.status-counters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+}
+
+.counter {
+  background-color: $bg-primary;
+  border-radius: $radius;
+  border: 1px solid $primary-light;
+  box-shadow: $shadow;
+  padding: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+  
+  &__info {
+    display: flex;
+    flex-direction: column;
+    
+    span {
+      font-size: 0.875rem;
+      color: $text-secondary;
+    }
+    
+    strong {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+  
+  &.waiting {
+    i {
+      background-color: $waiting-light;
+      color: $waiting;
+    }
+    
+    strong {
+      color: $waiting;
+    }
+  }
+  
+  &.absent {
+    i {
+      background-color: $absent-light;
+      color: $absent;
+    }
+    
+    strong {
+      color: $absent;
+    }
+  }
+  
+  &.done {
+    i {
+      background-color: $done-light;
+      color: $done;
+    }
+    
+    strong {
+      color: $done;
+    }
+  }
+}

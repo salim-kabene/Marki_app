@@ -1,0 +1,31 @@
+/* base/fonts.scss */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+// Variables de police
+$font-family-primary: "Inter", sans-serif;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Classes utilitaires pour les polices
+.text-light {
+  font-weight: $font-weight-light;
+}
+
+.text-regular {
+  font-weight: $font-weight-regular;
+}
+
+.text-medium {
+  font-weight: $font-weight-medium;
+}
+
+.text-semibold {
+  font-weight: $font-weight-semibold;
+}
+
+.text-bold {
+  font-weight: $font-weight-bold;
+}

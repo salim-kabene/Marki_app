@@ -1,0 +1,59 @@
+/* components/sidebar.scss */
+.sidebar {
+  width: 20%;
+  background-color: $bg-primary;
+  border-right: 1px solid $border-color;
+  padding: $spacing-xl $spacing-md $spacing-md ;
+  
+  &__menu {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+  
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md;
+    color: $text-secondary;
+    transition: background-color 0.3s, color 0.3s;
+    border-radius: 20px 0px 20px 0px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: $bg-tertiary;
+      .icon img {
+        filter: brightness(0) saturate(100%) invert(100%) sepia(90%) saturate(1960%)
+                hue-rotate(267deg) brightness(94%) contrast(93%);
+        // Ajustez ce filtre pour correspondre à la couleur souhaitée au survol
+      }
+    }
+    
+    &.active {
+      background-color: $primary-light;
+      color: $primary;
+      font-weight: 550;
+      .icon img {
+        filter: brightness(0) saturate(100%) invert(24%) sepia(100%) 
+                saturate(1960%) hue-rotate(267deg) 
+                brightness(94%) contrast(93%);
+        // Ajustez ce filtre pour correspondre à la couleur souhaitée au survol
+      } 
+    }
+    
+    .icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    img {
+      width: 100%;
+      height: 100%;
+      filter: grayscale(100%);
+      transition: filter .3s;
+    }
+  }
+}

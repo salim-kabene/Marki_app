@@ -1,0 +1,19 @@
+/* main.scss */
+// Base
+@import 'base/variables';
+@import 'base/reset';
+@import 'base/fonts';
+@import 'base/typography';
+
+// Layout
+@import 'layout/app';
+
+// Components
+@import 'components/header';
+@import 'components/sidebar';
+@import 'components/dashboard';
+@import 'components/dashboardPatientDetails';
+@import 'components/dashboardStatusCounters';
+@import 'components/patients';
+@import 'components/lists';
+@import 'components/settings';

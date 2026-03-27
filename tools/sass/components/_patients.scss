@@ -1,0 +1,152 @@
+// Page Patients
+.patients-page {
+    background-color: $bg-primary;
+    padding: $spacing-md;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+
+    .patients-header {
+        margin-bottom: $spacing-md;
+    
+        h1 {
+        padding-top: $spacing-xs;
+        font-size: $font-size-h4;
+        font-weight: bold;
+        color: $text-primary;
+        margin-bottom: $spacing-sm;
+        }
+        
+        p {
+        margin-top: -$spacing-xs;
+        font-size: $font-size-small;
+        color: $text-secondary;
+        }
+   }
+  
+    .search-container {
+        margin-bottom: $spacing-lg;
+        border: 2px solid $secondary-light;
+        border-radius: $radius-lg;
+        box-shadow: $shadow;
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        
+            .search-icon {
+                position: absolute;
+                left: $spacing-md;
+                top: 50%;
+                transform: translateY(-50%);
+                
+                img {
+                width: 20px;
+                height: 20px;
+                opacity: 0.6;
+                }
+            }
+        
+            input {
+                width: 100%;
+                padding: $spacing-md $spacing-md $spacing-md 48px;
+                border: 1px inset transparent;
+                font-size: $font-size-paragraph;
+                outline: $primary-dark;
+                
+                &:focus {
+                    outline: 2px double $border-color;
+                    border-radius: $radius-lg;
+                    border-color: $primary-light;
+                }
+                
+                &::placeholder {
+                    color: $text-secondary;
+                }
+            }
+        }
+    } 
+  
+    .patients-list-container {
+        display: flex;
+        gap: $spacing-md;
+    
+        .patients-list {
+            width: 70%;
+            background: white;
+            border-radius: $radius;
+            border: 1px solid $primary-light;
+            overflow: hidden;
+      
+            .patients-list-header {
+                display: flex;
+                padding: $spacing-md;
+                background-color: $bg-tertiary;
+                border-bottom: 1px solid $primary-light;
+        
+                .column-header {
+                    font-weight: 600;
+                    font-size: $font-size-caption;
+                    color: $text-secondary;
+                }
+        
+                .patient-column {
+                    flex: 1;
+                    padding-left: 10px;
+                    text-align: left;
+                }
+                
+                .passage-column {
+                    flex: 1;
+                    text-align: center;
+                }
+                
+                .status-column {
+                    flex: 1;
+                    padding-right: 10px;
+                    text-align: right;
+                }
+            }
+      
+            .patients-list-empty {
+                display: flex;
+                justify-content: center;
+                vertical-align: auto;
+                align-items: center;
+                padding: $spacing-lg * 2;
+                color: $text-secondary;
+                font-size: 16px;
+                p{
+                    margin: auto 0;
+                    padding: 15px;
+                }
+            }
+        }
+    
+        .patient-details-placeholder {
+            width: 35%;
+            background: white;
+            border-radius: $radius;
+            border: 1px solid $primary-light;
+            padding: $spacing-lg * 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+      
+            img {
+                width: 80px;
+                height: 80px;
+                opacity: 0.7;
+            }
+      
+            p {
+                color: $text-secondary;
+                font-size: 16px;
+                max-width: 100%;
+                margin: 0;
+            }
+        }
+    }
+}
