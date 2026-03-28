@@ -1,74 +1,301 @@
-<div class="layout">
-    <main class="main-content">
-        <!-- Contenu principal avec layout à 3 colonnes -->
+<section class="day-list-page">
+    <!-- =====================================================
+         EN-TÊTE DE LA PAGE
+         - titre
+         - badge état de la liste
+         - bouton fermer / réouvrir
+         - bouton nouveau patient
+    ====================================================== -->
+    <div class="day-list-page__top">
+        <div class="day-list-page__heading">
+            <div class="title-row">
+                <h2>Liste du jour</h2>
+
+                <!-- Badge d’état -->
+                <span class="list-status-badge list-status-badge--open" id="list-status-badge">
+                    Liste ouverte
+                </span>
+            </div>
+
+            <p>Gérez les patients du jour</p>
+        </div>
+
+        <div class="day-list-page__top-actions">
+            <!-- Bouton qui changera plus tard dynamiquement -->
+            <button class="btn-toggle-list btn-toggle-list--close" id="toggle-list-btn" type="button">
+                Fermer la liste
+            </button>
+
+            <button class="btn-primary" id="new-patient-btn" type="button">
+                <img src="assets/icons/main_content/ajoutrerPatient.png" alt="">
+                <span>Nouveau patient</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         LAYOUT PRINCIPAL
+         IMPORTANT :
+         - Détails patient à gauche
+         - Contenu principal à droite
+    ====================================================== -->
+    <div class="day-list-layout">
+        <!-- ==============================================
+             COLONNE GAUCHE : DÉTAILS PATIENT
+             Le premier patient est sélectionné par défaut
+        =============================================== -->
         <aside class="patient-details">
             <div class="panel">
                 <div class="panel__header">
-                    <img src="assets/icons/icons_detail_patient/detailsPatient.svg"></img>
-                    <h2>Détails du Patient</h2>
+                    <img src="assets/icons/icons_detail_patient/detailsPatient.svg" alt="">
+                    <h2>Détails du patient</h2>
                 </div>
+
                 <div class="panel__content">
-                    <div class="patient-placeholder">
-                        <!-- <img class="icon-user" src="assets/icons_detail_patient/patientProfil.png"></img> -->
-                        <img class="icon-user" src="assets/icons//icons_detail_patient/patientProfil.png"></img>
-                        <p>Sélectionnez un patient pour voir ses détails</p>
+                    <div class="patient-details-card">
+                        <div class="patient-details-card__identity">
+                            <h3>Amine Benali</h3>
+                            <p>0551 00 00 01</p>
+                        </div>
+
+                        <div class="patient-detail-item">
+                            <span class="label">Date de naissance</span>
+                            <span class="value">10/02/1996</span>
+                        </div>
+
+                        <div class="patient-detail-item">
+                            <span class="label">Source d'inscription</span>
+                            <span class="value">Secrétaire</span>
+                        </div>
+
+                        <div class="patient-detail-item">
+                            <span class="label">Statut actuel</span>
+                            <span class="value">
+                                <span class="status-pill status-pill--waiting">En attente</span>
+                            </span>
+                        </div>
+
+                        <div class="patient-detail-item patient-detail-item--notes">
+                            <span class="label">Notes cabinet</span>
+                            <p class="value">Patient régulier, à prévenir en cas de retard important.</p>
+                        </div>
+
+                        <div class="patient-detail-item patient-detail-item--history">
+                            <span class="label">Dernières visites</span>
+                            <ul class="visit-history">
+                                <li>
+                                    <span>25 février 2025</span>
+                                    <strong class="history-status history-status--done">Terminé</strong>
+                                </li>
+                                <li>
+                                    <span>10 février 2025</span>
+                                    <strong class="history-status history-status--absent">Absent</strong>
+                                </li>
+                                <li>
+                                    <span>03 janvier 2025</span>
+                                    <strong class="history-status history-status--done">Terminé</strong>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </aside>
-        <div class="main-content-center">
-            <div class="main-content-center__header">
-                <div>
-                    <h2>Liste d'attente</h2>
-                    <p>Gérez vos patients en temps réel</p>
+
+        <!-- ==============================================
+             COLONNE DROITE : LISTE + TABLEAU + COMPTEURS
+        =============================================== -->
+        <div class="day-list-main">
+            <!-- Barre recherche + filtre -->
+            <div class="day-list-toolbar">
+                <div class="search-box">
+                    <img src="assets/icons/patients/search.svg" alt="">
+                    <input type="text" placeholder="Rechercher un patient..." id="day-list-search">
                 </div>
-                <button class="btn-primary">
-                    <img src=assets/icons/main_content/ajoutrerPatient.png class="icon-plus"></img>
-                    <span>Nouveau Patient</span>
-                </button>
+
+                <div class="filter-box">
+                    <select id="day-list-filter">
+                        <option value="all">Tous les statuts</option>
+                        <option value="waiting">En attente</option>
+                        <option value="done">Terminés</option>
+                        <option value="absent">Absents</option>
+                    </select>
+                </div>
             </div>
 
+            <!-- Tableau principal -->
             <div class="waiting-list">
                 <table>
+                    <colgroup>
+                        <col class="col-num">
+                        <col class="col-patient">
+                        <col class="col-phone">
+                        <col class="col-time">
+                        <col class="col-status">
+                        <col class="col-actions">
+                    </colgroup>
+
                     <thead>
                         <tr>
                             <th>N°</th>
                             <th>PATIENT</th>
-                            <th>STATUS</th>
+                            <th>TÉLÉPHONE</th>
+                            <th>HEURE</th>
+                            <th>STATUT</th>
                             <th>ACTIONS</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        <tr class="empty-state">
-                            <td colspan="4">Aucun patient pour aujourd'hui</td>
+                        <!-- Ligne 1 sélectionnée par défaut -->
+                        <tr class="patient-row is-selected">
+                            <td>1</td>
+                            <td class="patient-name-cell">Amine Benali</td>
+                            <td class="patient-phone-cell">0551 00 00 01</td>
+                            <td>10:30</td>
+                            <td>
+                                <span class="status-pill status-pill--waiting">En attente</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-action-icon btn-action-icon--view" type="button" title="Voir">
+                                        <span>👁</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--absent" type="button" title="Absent">
+                                        <span>✕</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--done" type="button" title="Terminer">
+                                        <span>✓</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="patient-row">
+                            <td>2</td>
+                            <td class="patient-name-cell">Sara Khelifi</td>
+                            <td class="patient-phone-cell">0551 00 00 02</td>
+                            <td>10:45</td>
+                            <td>
+                                <span class="status-pill status-pill--waiting">En attente</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-action-icon btn-action-icon--view" type="button" title="Voir">
+                                        <span>👁</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--absent" type="button" title="Absent">
+                                        <span>✕</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--done" type="button" title="Terminer">
+                                        <span>✓</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="patient-row">
+                            <td>3</td>
+                            <td class="patient-name-cell">Mohamed Touati</td>
+                            <td class="patient-phone-cell">+213 551 30 20 03</td>
+                            <td>11:15</td>
+                            <td>
+                                <span class="status-pill status-pill--absent">Absent</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-action-icon btn-action-icon--view" type="button" title="Voir">
+                                        <span>👁</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--absent" type="button" title="Absent">
+                                        <span>✕</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--done" type="button" title="Terminer">
+                                        <span>✓</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="patient-row">
+                            <td>4</td>
+                            <td class="patient-name-cell">Nadia Alloune</td>
+                            <td class="patient-phone-cell">0551 00 00 04</td>
+                            <td>11:45</td>
+                            <td>
+                                <span class="status-pill status-pill--done">Terminé</span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-action-icon btn-action-icon--view" type="button" title="Voir">
+                                        <span>👁</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--absent" type="button" title="Absent">
+                                        <span>✕</span>
+                                    </button>
+
+                                    <button class="btn-action-icon btn-action-icon--done" type="button" title="Terminer">
+                                        <span>✓</span>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
+            <!-- Bas tableau -->
+            <div class="day-list-footer">
+                <div class="display-count">
+                    <span>Affichage :</span>
+                    <div class="display-count__options">
+                        <button class="display-option is-active" type="button">12</button>
+                        <button class="display-option" type="button">24</button>
+                        <button class="display-option" type="button">48</button>
+                    </div>
+                </div>
+
+                <div class="pagination">
+                    <button class="pagination__item is-active" type="button">1</button>
+                    <button class="pagination__item" type="button">2</button>
+                    <button class="pagination__item" type="button">3</button>
+                    <button class="pagination__item" type="button">4</button>
+                </div>
+            </div>
+
+            <!-- Compteurs -->
             <div class="status-counters">
                 <div class="counter waiting">
-                    <img class="icon-clock" src="assets/icons/main_content/enAttente.png"></img>
+                    <img class="icon-clock" src="assets/icons/main_content/enAttente.png" alt="">
                     <div class="counter__info">
                         <span>En attente</span>
-                        <strong>0</strong>
+                        <strong>2</strong>
                     </div>
                 </div>
+
                 <div class="counter absent">
-                    <img class="icon-user-x" src="assets/icons/main_content/absent.svg"></img>
+                    <img class="icon-user-x" src="assets/icons/main_content/absent.svg" alt="">
                     <div class="counter__info">
                         <span>Absent</span>
-                        <strong>0</strong>
+                        <strong>1</strong>
                     </div>
                 </div>
+
                 <div class="counter done">
-                    <img class="icon-check" src="assets/icons/main_content/terminer.svg"></img>
+                    <img class="icon-check" src="assets/icons/main_content/terminer.svg" alt="">
                     <div class="counter__info">
                         <span>Terminé</span>
-                        <strong>0</strong>
+                        <strong>1</strong>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
-</div>
+    </div>
+</section>

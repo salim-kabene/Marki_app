@@ -1,94 +1,565 @@
-/* components/waiting-list.scss */
-.main-content{
-  padding: $spacing-xs;
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
-  background-color: $bg-primary;
-}
-.main-content-center {
-  flex: 1;
-  display: flex;
-  width: 75%;
-  padding: $spacing-lg;
-  flex-direction: column;
-  background-color: $bg-primary;
-  gap: $spacing-md;
+/* =========================================================
+   DASHBOARD / LISTE DU JOUR
+   ---------------------------------------------------------
+   Ce fichier gère :
+   - la structure générale de la page Liste du jour
+   - le titre + badge + boutons du haut
+   - la recherche + filtre
+   - le tableau
+   - les actions en icônes
+   - la pagination
+   ---------------------------------------------------------
+   IMPORTANT :
+   - On garde le panneau détails à gauche
+   - On donne plus de place au tableau pour écran ~1240px
+   ========================================================= */
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    h2 {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: $spacing-xs;
-    }
-    
-    p {
-      color: $text-secondary;
-      font-size: 0.875rem;
-      margin: 0;
-    }
-    img{
-      width: 24px;
-      height: 24px;
-    }
+.main-content {
+  padding: $spacing-lg;
+  background-color: $bg-primary;
+  min-height: calc(100vh - 110px);
+}
+
+/* ---------------------------------------------------------
+   Wrapper global de la page
+--------------------------------------------------------- */
+.day-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+/* ---------------------------------------------------------
+   Bloc du haut :
+   - titre
+   - badge état
+   - boutons
+--------------------------------------------------------- */
+.day-list-page__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-lg;
+  flex-wrap: wrap;
+}
+
+.day-list-page__heading {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  h2 {
+    margin: 0;
+    font-size: clamp(2rem, 2vw, 2.7rem);
+    line-height: 1.1;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    color: $text-secondary;
   }
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------
+   Badge ouvert / fermé
+--------------------------------------------------------- */
+.list-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: $radius-full;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+
+  &--open {
+    background-color: $done-light;
+    color: $done;
+  }
+
+  &--closed {
+    background-color: $absent-light;
+    color: $absent;
+  }
+}
+
+/* ---------------------------------------------------------
+   Boutons à droite
+--------------------------------------------------------- */
+.day-list-page__top-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+/* Bouton violet principal */
 .btn-primary {
   background-color: $primary;
-  color: white;
+  color: #fff;
+  border: none;
   border-radius: $radius;
-  padding: $spacing-sm $spacing-md;
+  font-size: .9rem;
+  padding: 0.7rem 1.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-all;
+  box-shadow: $shadow;
+  // min-height: 54px;
+
+  img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  &:hover {
+    background-color: $primary-dark;
+    transform: translateY(-1px);
+  }
+}
+
+/* Bouton ouvrir / fermer */
+.btn-toggle-list {
+  border: none;
+  border-radius: $radius;
+  padding: 0.70rem 1.3rem;
+  // min-height: 54px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: $transition-all;
+  box-shadow: $shadow;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &--close {
+    background-color: $absent;
+    color: #fff;
+  }
+
+  &--open {
+    background-color: $done;
+    color: #fff;
+  }
+}
+
+/* ---------------------------------------------------------
+   LAYOUT PRINCIPAL
+   - détails gauche
+   - contenu droit
+   ---------------------------------------------------------
+   Très important :
+   On garde une colonne gauche plus compacte
+   pour laisser un maximum de largeur au tableau.
+--------------------------------------------------------- */
+.day-list-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: $spacing-lg;
+  align-items: start;
+}
+
+.day-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   Barre recherche + filtre
+--------------------------------------------------------- */
+.day-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.search-box {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  font-weight: 500;
-  transition: $transition-all;
-  
-  &:hover {
-    background-color: $primary-dark;
+  min-height: 56px;
+  padding: 0 1rem;
+  background-color: $bg-primary;
+  border: 1px solid $border-color;
+  border-radius: $radius;
+  box-shadow: $shadow-subtle;
+
+  img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.75;
+    flex-shrink: 0;
+  }
+
+  input {
+    border: none;
+    outline: none;
+    width: 100%;
+    background: transparent;
+    font-size: 1rem;
+    color: $text-primary;
+
+    &::placeholder {
+      color: $text-secondary;
+    }
   }
 }
 
+.filter-box {
+  select {
+    width: 100%;
+    min-height: 56px;
+    padding: 0 1rem;
+    border: 1px solid $border-color;
+    border-radius: $radius;
+    background-color: $bg-primary;
+    color: $text-primary;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    box-shadow: $shadow-subtle;
+  }
+}
+
+/* ---------------------------------------------------------
+   Tableau principal
+--------------------------------------------------------- */
 .waiting-list {
   background-color: $bg-primary;
-  border-radius: $radius;
   border: 1px solid $primary-light;
-  box-shadow: $shadow;
+  border-radius: $radius-lg;
   overflow: hidden;
-  
+  box-shadow: $shadow-subtle;
+
   table {
     width: 100%;
     border-collapse: collapse;
-    
-    th {
-      text-align: center;
-      padding: $spacing-md $spacing-lg;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: $text-secondary;
-      background-color: $bg-secondary;
-      text-transform: uppercase;
-      border-bottom: 1px solid $border-color;
-    }
-    
+    table-layout: fixed;
+  }
+
+  /* Largeurs fixes pour éviter que le tableau casse */
+  .col-num {
+    width: 7%;
+  }
+
+  .col-patient {
+    width: 24%;
+  }
+
+  .col-phone {
+    width: 21%;
+  }
+
+  .col-time {
+    width: 12%;
+  }
+
+  .col-status {
+    width: 16%;
+  }
+
+  .col-actions {
+    width: 20%;
+  }
+
+  thead {
+    background-color: $bg-secondary;
+  }
+
+  th {
+    text-align: left;
+    padding: 1rem 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $text-secondary;
+    border-bottom: 1px solid $border-color;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.95rem 0.9rem;
+    font-size: 0.98rem;
+    color: $text-primary;
+    border-bottom: 1px solid #f1f1f1;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+/* Ligne sélectionnée */
+.patient-row {
+  transition: $transition-all;
+
+  &:hover {
+    background-color: #faf8ff;
+  }
+
+  &.is-selected {
+    background-color: #fbf9ff;
+  }
+}
+
+/* Empêcher le nom et le téléphone de casser sur plusieurs lignes */
+.patient-name-cell,
+.patient-phone-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-name-cell {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------
+   Statuts
+--------------------------------------------------------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // min-height: 36px;
+  // padding: 0.7rem 0.85rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: $radius-sm;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+
+  &--waiting {
+    background-color: $waiting-light;
+    color: $waiting;
+  }
+
+  &--absent {
+    background-color: $absent-light;
+    color: $absent;
+  }
+
+  &--done {
+    background-color: $done-light;
+    color: $done;
+  }
+}
+
+/* ---------------------------------------------------------
+   Actions : on passe en boutons icônes compacts
+   pour gagner de la place
+--------------------------------------------------------- */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+}
+
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius;
+  border: 1px solid $border-color;
+  background-color: $bg-primary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: $transition-all;
+  box-shadow: $shadow-subtle;
+  font-size: 1.05rem;
+  font-weight: 700;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  span {
+    line-height: 1;
+  }
+
+  &--view {
+    color: $text-primary;
+    background-color: #fff;
+  }
+
+  &--absent {
+    background-color: $absent-light;
+    border-color: rgba($absent, 0.15);
+    color: $absent;
+  }
+
+  &--done {
+    background-color: $done-light;
+    border-color: rgba($done, 0.15);
+    color: $done;
+  }
+}
+
+/* ---------------------------------------------------------
+   Bas de tableau
+--------------------------------------------------------- */
+.day-list-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.display-count {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  span {
+    color: $text-secondary;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+}
+
+.display-count__options {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.display-option {
+  min-width: 42px;
+  height: 40px;
+  border: 1px solid $border-color;
+  border-radius: $radius;
+  background-color: $bg-primary;
+  color: $text-secondary;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-all;
+
+  &.is-active {
+    background-color: $primary-light;
+    color: $primary;
+    border-color: rgba($primary, 0.2);
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.pagination__item {
+  min-width: 42px;
+  height: 40px;
+  border: 1px solid $border-color;
+  border-radius: $radius;
+  background-color: $bg-primary;
+  color: $text-secondary;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition-all;
+
+  &.is-active {
+    background-color: $primary-light;
+    color: $primary;
+    border-color: rgba($primary, 0.2);
+  }
+}
+
+/* ---------------------------------------------------------
+   Responsive
+--------------------------------------------------------- */
+
+/* Tablette large */
+@media (max-width: 1400px) {
+  .day-list-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .waiting-list {
+    th,
     td {
-      padding: $spacing-md;
-      border-bottom: 1px solid $border-color;
-      font-size: 0.875rem;
+      font-size: 0.70rem;
+      padding: 0.85rem 0.75rem;
     }
-    
-    .empty-state {
-      td {
-        text-align: center;
-        color: $text-secondary;
-        padding: $spacing-xl;
-      }
+  }
+
+  .btn-action-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablette */
+@media (max-width: 1180px) {
+  .day-list-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .day-list-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .day-list-page__top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .day-list-page__top-actions {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-toggle-list {
+    width: 30%;
+    justify-content: center;
+  }
+}
+
+/* Mobile / petite tablette */
+@media (max-width: 768px) {
+  .main-content {
+    padding: $spacing-md;
+  }
+
+  .waiting-list {
+    overflow-x: auto;
+
+    table {
+      min-width: 900px;
     }
+  }
+  .day-list-page__top-actions {
+    width: 100%;
+  }
+  .btn-primary,
+  .btn-toggle-list {
+    width: 100%;
+    justify-content: center;
   }
 }

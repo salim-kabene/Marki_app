@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* main.scss */
 /* base/variables.scss */
 /* base/reset.scss */
@@ -246,161 +247,672 @@ p {
   transition: filter 0.3s;
 }
 
-/* components/waiting-list.scss */
+/* =========================================================
+   DASHBOARD / LISTE DU JOUR
+   ---------------------------------------------------------
+   Ce fichier gère :
+   - la structure générale de la page Liste du jour
+   - le titre + badge + boutons du haut
+   - la recherche + filtre
+   - le tableau
+   - les actions en icônes
+   - la pagination
+   ---------------------------------------------------------
+   IMPORTANT :
+   - On garde le panneau détails à gauche
+   - On donne plus de place au tableau pour écran ~1240px
+   ========================================================= */
 .main-content {
-  padding: 0.25rem;
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
+  padding: 1.5rem;
   background-color: #FFFFFF;
+  min-height: calc(100vh - 110px);
 }
 
-.main-content-center {
-  flex: 1;
+/* ---------------------------------------------------------
+   Wrapper global de la page
+--------------------------------------------------------- */
+.day-list-page {
   display: flex;
-  width: 75%;
-  padding: 1.5rem;
   flex-direction: column;
-  background-color: #FFFFFF;
-  gap: 1rem;
+  gap: 1.5rem;
 }
-.main-content-center__header {
+
+/* ---------------------------------------------------------
+   Bloc du haut :
+   - titre
+   - badge état
+   - boutons
+--------------------------------------------------------- */
+.day-list-page__top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-}
-.main-content-center__header h2 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-.main-content-center__header p {
-  color: #6B7280;
-  font-size: 0.875rem;
-  margin: 0;
-}
-.main-content-center__header img {
-  width: 24px;
-  height: 24px;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.btn-primary {
-  background-color: rgb(138, 43, 226);
-  color: white;
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
+.day-list-page__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.day-list-page__heading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 2vw, 2.7rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: #1F2937;
+}
+.day-list-page__heading p {
+  margin: 0;
+  font-size: 1rem;
+  color: #6B7280;
+}
+
+.title-row {
   display: flex;
   align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------
+   Badge ouvert / fermé
+--------------------------------------------------------- */
+.list-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.list-status-badge--open {
+  background-color: #D1FAE5;
+  color: #10B981;
+}
+.list-status-badge--closed {
+  background-color: #FEE2E2;
+  color: #EF4444;
+}
+
+/* ---------------------------------------------------------
+   Boutons à droite
+--------------------------------------------------------- */
+.day-list-page__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Bouton violet principal */
+.btn-primary {
+  background-color: rgb(138, 43, 226);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.7rem 1.3rem;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  font-weight: 500;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 300ms ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.btn-primary img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 .btn-primary:hover {
   background-color: rgba(138, 43, 226, 0.9);
+  transform: translateY(-1px);
 }
 
+/* Bouton ouvrir / fermer */
+.btn-toggle-list {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 300ms ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.btn-toggle-list:hover {
+  transform: translateY(-1px);
+}
+.btn-toggle-list--close {
+  background-color: #EF4444;
+  color: #fff;
+}
+.btn-toggle-list--open {
+  background-color: #10B981;
+  color: #fff;
+}
+
+/* ---------------------------------------------------------
+   LAYOUT PRINCIPAL
+   - détails gauche
+   - contenu droit
+   ---------------------------------------------------------
+   Très important :
+   On garde une colonne gauche plus compacte
+   pour laisser un maximum de largeur au tableau.
+--------------------------------------------------------- */
+.day-list-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.day-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   Barre recherche + filtre
+--------------------------------------------------------- */
+.day-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 56px;
+  padding: 0 1rem;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.search-box img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+.search-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  font-size: 1rem;
+  color: #1F2937;
+}
+.search-box input::placeholder {
+  color: #6B7280;
+}
+
+.filter-box select {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  background-color: #FFFFFF;
+  color: #1F2937;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* ---------------------------------------------------------
+   Tableau principal
+--------------------------------------------------------- */
 .waiting-list {
   background-color: #FFFFFF;
-  border-radius: 0.5rem;
   border: 1px solid rgba(138, 43, 226, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  /* Largeurs fixes pour éviter que le tableau casse */
 }
 .waiting-list table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
-.waiting-list table th {
-  text-align: center;
-  padding: 1rem 1.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6B7280;
+.waiting-list .col-num {
+  width: 7%;
+}
+.waiting-list .col-patient {
+  width: 24%;
+}
+.waiting-list .col-phone {
+  width: 21%;
+}
+.waiting-list .col-time {
+  width: 12%;
+}
+.waiting-list .col-status {
+  width: 16%;
+}
+.waiting-list .col-actions {
+  width: 20%;
+}
+.waiting-list thead {
   background-color: #F9FAFB;
-  text-transform: uppercase;
-  border-bottom: 1px solid #E5E7EB;
 }
-.waiting-list table td {
-  padding: 1rem;
-  border-bottom: 1px solid #E5E7EB;
-  font-size: 0.875rem;
-}
-.waiting-list table .empty-state td {
-  text-align: center;
+.waiting-list th {
+  text-align: left;
+  padding: 1rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #6B7280;
-  padding: 2rem;
+  border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
+}
+.waiting-list td {
+  padding: 0.95rem 0.9rem;
+  font-size: 0.98rem;
+  color: #1F2937;
+  border-bottom: 1px solid #f1f1f1;
+  vertical-align: middle;
+}
+.waiting-list tbody tr:last-child td {
+  border-bottom: none;
 }
 
-/* components/patient-details.scss */
-.patient-details {
-  width: 25%;
-  padding: 1rem;
-  flex-shrink: 0;
+/* Ligne sélectionnée */
+.patient-row {
+  transition: all 300ms ease-in-out;
+}
+.patient-row:hover {
+  background-color: #faf8ff;
+}
+.patient-row.is-selected {
+  background-color: #fbf9ff;
+}
+
+/* Empêcher le nom et le téléphone de casser sur plusieurs lignes */
+.patient-name-cell,
+.patient-phone-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patient-name-cell {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------
+   Statuts
+--------------------------------------------------------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.status-pill--waiting {
+  background-color: rgba(138, 43, 226, 0.1);
+  color: rgb(138, 43, 226);
+}
+.status-pill--absent {
+  background-color: #FEE2E2;
+  color: #EF4444;
+}
+.status-pill--done {
+  background-color: #D1FAE5;
+  color: #10B981;
+}
+
+/* ---------------------------------------------------------
+   Actions : on passe en boutons icônes compacts
+   pour gagner de la place
+--------------------------------------------------------- */
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+}
+
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  border: 1px solid #E5E7EB;
   background-color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 300ms ease-in-out;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.btn-action-icon:hover {
+  transform: translateY(-1px);
+}
+.btn-action-icon span {
+  line-height: 1;
+}
+.btn-action-icon--view {
+  color: #1F2937;
+  background-color: #fff;
+}
+.btn-action-icon--absent {
+  background-color: #FEE2E2;
+  border-color: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+.btn-action-icon--done {
+  background-color: #D1FAE5;
+  border-color: rgba(16, 185, 129, 0.15);
+  color: #10B981;
 }
 
+/* ---------------------------------------------------------
+   Bas de tableau
+--------------------------------------------------------- */
+.day-list-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.display-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.display-count span {
+  color: #6B7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.display-count__options {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.display-option {
+  min-width: 42px;
+  height: 40px;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  background-color: #FFFFFF;
+  color: #6B7280;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 300ms ease-in-out;
+}
+.display-option.is-active {
+  background-color: rgba(138, 43, 226, 0.1);
+  color: rgb(138, 43, 226);
+  border-color: rgba(138, 43, 226, 0.2);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination__item {
+  min-width: 42px;
+  height: 40px;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  background-color: #FFFFFF;
+  color: #6B7280;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 300ms ease-in-out;
+}
+.pagination__item.is-active {
+  background-color: rgba(138, 43, 226, 0.1);
+  color: rgb(138, 43, 226);
+  border-color: rgba(138, 43, 226, 0.2);
+}
+
+/* ---------------------------------------------------------
+   Responsive
+--------------------------------------------------------- */
+/* Tablette large */
+@media (max-width: 1400px) {
+  .day-list-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+  .waiting-list th,
+  .waiting-list td {
+    font-size: 0.7rem;
+    padding: 0.85rem 0.75rem;
+  }
+  .btn-action-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+}
+/* Tablette */
+@media (max-width: 1180px) {
+  .day-list-layout {
+    grid-template-columns: 1fr;
+  }
+  .day-list-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .day-list-page__top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .day-list-page__top-actions {
+    width: 100%;
+  }
+  .btn-primary,
+  .btn-toggle-list {
+    width: 30%;
+    justify-content: center;
+  }
+}
+/* Mobile / petite tablette */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  .waiting-list {
+    overflow-x: auto;
+  }
+  .waiting-list table {
+    min-width: 900px;
+  }
+  .day-list-page__top-actions {
+    width: 100%;
+  }
+  .btn-primary,
+  .btn-toggle-list {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* =========================================================
+   DÉTAILS DU PATIENT
+   ---------------------------------------------------------
+   Ce fichier gère uniquement le panneau de détails
+   placé à gauche dans la page "Liste du jour".
+   ========================================================= */
+.patient-details {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Carte principale */
 .panel {
   background-color: #FFFFFF;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(138, 43, 226, 0.1);
   overflow: hidden;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 100%;
 }
 .panel__header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1.5rem;
+  padding: 1.2rem 1.25rem;
+  border-bottom: 1px solid rgba(138, 43, 226, 0.08);
 }
 .panel__header img {
   width: 24px;
   height: 24px;
-  font-size: 1.25rem;
-  transition: filter 0.3s;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .panel__header h2 {
-  font-size: 1rem;
-  font-weight: 600;
   margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1F2937;
 }
 .panel__content {
-  flex: 1;
-  display: flex;
-  padding: 1.5rem;
-  flex-direction: column;
-}
-
-.patient-placeholder {
+  padding: 1.2rem 1.25rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 100%;
-  color: #6B7280;
   gap: 1rem;
 }
-.patient-placeholder img {
-  font-size: 3rem;
-  color: #E5E7EB;
-  filter: invert(24%) sepia(90%) saturate(1960%) hue-rotate(267deg) brightness(94%) contrast(93%);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+
+/* ---------------------------------------------------------
+   Carte interne des infos patient
+--------------------------------------------------------- */
+.patient-details-card {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.patient-placeholder p {
-  font-size: 0.875rem;
-  max-width: 200px;
-  line-height: 1.4;
+  flex-direction: column;
+  gap: 1rem;
 }
 
+.patient-details-card__identity {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+.patient-details-card__identity h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1F2937;
+}
+.patient-details-card__identity p {
+  margin: 0;
+  color: #6B7280;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------
+   Lignes d’info :
+   - date de naissance
+   - source inscription
+   - statut
+--------------------------------------------------------- */
+.patient-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.patient-detail-item .label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6B7280;
+}
+.patient-detail-item .value {
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #1F2937;
+}
+
+/* Notes cabinet */
+.patient-detail-item--notes {
+  padding-top: 0.25rem;
+  border-top: 1px solid #f4f4f4;
+}
+
+/* Historique */
+.patient-detail-item--history {
+  padding-top: 0.25rem;
+  border-top: 1px solid #f4f4f4;
+}
+
+.visit-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.visit-history li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  background-color: #F9FAFB;
+  border-radius: 0.5rem;
+  border: 1px solid #f1f1f1;
+}
+.visit-history li span {
+  font-size: 0.92rem;
+  color: #1F2937;
+}
+
+/* Statuts dans l'historique */
+.history-status {
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.history-status--done {
+  color: #10B981;
+}
+.history-status--absent {
+  color: #EF4444;
+}
+
+/* ---------------------------------------------------------
+   Responsive :
+   quand le layout passe en colonne, ce panneau reste propre
+--------------------------------------------------------- */
+@media (max-width: 1180px) {
+  .panel__content {
+    padding: 1rem;
+  }
+  .patient-details-card__identity h3 {
+    font-size: 1.25rem;
+  }
+}
 /* components/status-counters.scss */
 .status-counters {
   display: grid;
