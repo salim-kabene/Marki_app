@@ -1,21 +1,24 @@
-// script.js
+// ==========================================================
+// MENU / NAVIGATION
+// ==========================================================
 
-// Fonction pour gérer l'activation des éléments du menu
-function activateMenuItem(event) {
-    // Supprimez la classe active de tous les éléments
+function setActiveMenuItem(page) {
     document.querySelectorAll('.sidebar__item').forEach(item => {
         item.classList.remove('active');
+
+        if (item.getAttribute('data-page') === page) {
+            item.classList.add('active');
+        }
     });
-    
-    // Ajoutez la classe active à l'élément cliqué
-    event.currentTarget.classList.add('active');
 }
 
-// Fonction pour charger le contenu d'une page
+// ==========================================================
+// CHARGEMENT DES PAGES
+// ==========================================================
+
 function loadPage(page) {
     const mainContent = document.getElementById('main-content');
-    
-    // Utilisez fetch pour charger le contenu de la page
+
     fetch(`pages/${page}.html`)
         .then(response => {
             if (!response.ok) {
@@ -24,66 +27,249 @@ function loadPage(page) {
             return response.text();
         })
         .then(html => {
-            mainContent.innerHTML = html; // Insère le contenu dans le conteneur
-            if(page === "settings")
-                addSaveButtonListener();
+            mainContent.innerHTML = html;
+
+            // Initialisation spécifique selon la page chargée
+            initPage(page);
         })
         .catch(error => {
             console.error('Erreur:', error);
             mainContent.innerHTML = '<p>Erreur de chargement de la page.</p>';
         });
 }
-// Ajoutez des écouteurs d'événements à chaque élément du menu
-document.querySelectorAll('.sidebar__item').forEach(item => {
-    item.addEventListener('click', activateMenuItem);
-});
 
-// Ajoutez des écouteurs d'événements aux éléments de la sidebar
-document.querySelectorAll('.sidebar__item').forEach(item => {
-    item.addEventListener('click', function() {
-        const page = this.getAttribute('data-page'); // Récupère le nom de la page
-        loadPage(page); // Charge la page correspondante
-    });
-});
+function initPage(page) {
+    if (page === 'dashboard') {
+        initDashboardPage();
+    }
 
-// Charge la page par défaut ( dashboard )
-loadPage('dashboard');
-// loadPage('settings');
-// loadPage('patients');
-// loadPage('lists');
+    if (page === 'settings') {
+        addSaveButtonListener();
+    }
+}
 
-// la partie de sauvgarde des mise a jour des infos du medecin
-// Ajoutez l'écouteur d'événements pour le bouton "Enregistrer"
-// Fonction pour ajouter l'écouteur d'événements au bouton "Enregistrer"
+// ==========================================================
+// DASHBOARD / LISTE DU JOUR
+// ==========================================================
+
+function initDashboardPage() {
+    loadDashboardData();
+}
+
+/*
+|--------------------------------------------------------------------------
+| Charger les données du dashboard depuis l'API
+|--------------------------------------------------------------------------
+| Cette fonction :
+| - appelle queue_entries.php
+| - récupère la queue, les entrées, les compteurs
+| - met à jour l'interface
+|--------------------------------------------------------------------------
+*/
+function loadDashboardData() {
+    fetch('api/queue_entries.php')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur HTTP lors du chargement du dashboard');
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (!result.ok) {
+                throw new Error(result.message || 'Erreur API');
+            }
+
+            const queue = result.data.queue;
+            const entries = result.data.entries;
+            const counts = result.data.counts;
+
+            updateQueueStatusBadge(queue);
+            renderDashboardTable(entries);
+            renderDashboardCounters(counts);
+        })
+        .catch(error => {
+            console.error('Erreur dashboard:', error);
+
+            const tableBody = document.getElementById('day-list-table-body');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="table-empty-state">
+                            Impossible de charger les données.
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+}
+
+/*
+|--------------------------------------------------------------------------
+| Mettre à jour le badge Liste ouverte / fermée
+|--------------------------------------------------------------------------
+*/
+function updateQueueStatusBadge(queue) {
+    const badge = document.getElementById('list-status-badge');
+    const toggleButton = document.getElementById('toggle-list-btn');
+
+    if (!badge || !toggleButton) return;
+
+    const isOpen = queue.status === 'open';
+
+    badge.textContent = isOpen ? 'Liste ouverte' : 'Liste fermée';
+    badge.classList.remove('list-status-badge--open', 'list-status-badge--closed');
+    badge.classList.add(isOpen ? 'list-status-badge--open' : 'list-status-badge--closed');
+
+    toggleButton.textContent = isOpen ? 'Fermer la liste' : 'Réouvrir la liste';
+    toggleButton.classList.remove('btn-toggle-list--close', 'btn-toggle-list--open');
+    toggleButton.classList.add(isOpen ? 'btn-toggle-list--close' : 'btn-toggle-list--open');
+}
+
+/*
+|--------------------------------------------------------------------------
+| Construire le tableau des patients du jour
+|--------------------------------------------------------------------------
+*/
+function renderDashboardTable(entries) {
+    const tableBody = document.getElementById('day-list-table-body');
+
+    if (!tableBody) return;
+
+    if (!entries || entries.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="table-empty-state">
+                    Aucun patient pour aujourd'hui
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tableBody.innerHTML = entries.map((entry, index) => `
+        <tr class="patient-row ${index === 0 ? 'is-selected' : ''}">
+            <td>${entry.number}</td>
+            <td class="patient-name-cell">${escapeHtml(entry.display_name ?? '')}</td>
+            <td class="patient-phone-cell">${escapeHtml(entry.phone ?? '-')}</td>
+            <td>${escapeHtml(entry.time ?? '-')}</td>
+            <td>${renderStatusPill(entry.status)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn-action-icon btn-action-icon--view" type="button" title="Voir">
+                        <span>👁</span>
+                    </button>
+
+                    <button class="btn-action-icon btn-action-icon--absent" type="button" title="Absent">
+                        <span>✕</span>
+                    </button>
+
+                    <button class="btn-action-icon btn-action-icon--done" type="button" title="Terminer">
+                        <span>✓</span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/*
+|--------------------------------------------------------------------------
+| Construire le badge de statut
+|--------------------------------------------------------------------------
+| Mapping DB -> UI :
+| waiting = En attente
+| no_show = Absent
+| done = Terminé
+|--------------------------------------------------------------------------
+*/
+function renderStatusPill(status) {
+    if (status === 'waiting') {
+        return '<span class="status-pill status-pill--waiting">En attente</span>';
+    }
+
+    if (status === 'no_show') {
+        return '<span class="status-pill status-pill--absent">Absent</span>';
+    }
+
+    if (status === 'done') {
+        return '<span class="status-pill status-pill--done">Terminé</span>';
+    }
+
+    return `<span class="status-pill">${escapeHtml(status)}</span>`;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Mettre à jour les compteurs
+|--------------------------------------------------------------------------
+*/
+function renderDashboardCounters(counts) {
+    const waitingEl = document.getElementById('counter-waiting');
+    const absentEl = document.getElementById('counter-absent');
+    const doneEl = document.getElementById('counter-done');
+
+    if (waitingEl) waitingEl.textContent = counts.waiting ?? 0;
+    if (absentEl) absentEl.textContent = counts.absent ?? 0;
+    if (doneEl) doneEl.textContent = counts.done ?? 0;
+}
+
+// ==========================================================
+// SETTINGS
+// ==========================================================
+
 function addSaveButtonListener() {
     const saveButton = document.getElementById('save-button');
-    if (saveButton) {
-        saveButton.addEventListener('click', function() {
-            const nom = document.getElementById('nom-prenom').value;
-            const specialite = document.getElementById('specialite').value;
-            const telephone = document.getElementById('telephone').value;
-            const email = document.getElementById('email').value;
-            const adresse = document.getElementById('adresse').value;
 
-            // Ici, vous pouvez envoyer ces données à votre base de données
+    if (saveButton) {
+        saveButton.addEventListener('click', function () {
+            const nom = document.getElementById('nom-prenom')?.value;
+            const specialite = document.getElementById('specialite')?.value;
+            const telephone = document.getElementById('telephone')?.value;
+            const email = document.getElementById('email')?.value;
+            const adresse = document.getElementById('adresse')?.value;
+
             console.log('Nom et Prénom:', nom);
             console.log('Spécialité:', specialite);
             console.log('Téléphone:', telephone);
             console.log('Email:', email);
             console.log('Adresse du cabinet:', adresse);
 
-            // Affichez un message de confirmation ou effectuez d'autres actions
-            // alert('Modifications enregistrées !');
-
-            // Ajoute la classe pour l'animation
             this.classList.toggle('clicked');
 
-            // Retire la classe après un court délai pour permettre la réanimation
             setTimeout(() => {
                 this.classList.remove('clicked');
-            }, 300); // Correspond à la durée de l'animation
+            }, 300);
         });
-    } else {
-        console.error("Le bouton 'Enregistrer' n'a pas été trouvé.");
     }
 }
+
+// ==========================================================
+// HELPERS
+// ==========================================================
+
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
+}
+
+// ==========================================================
+// EVENTS MENU
+// ==========================================================
+
+document.querySelectorAll('.sidebar__item').forEach(item => {
+    item.addEventListener('click', function () {
+        const page = this.getAttribute('data-page');
+        setActiveMenuItem(page);
+        loadPage(page);
+    });
+});
+
+// ==========================================================
+// PAGE PAR DÉFAUT AU REFRESH
+// ==========================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    setActiveMenuItem('dashboard');
+    loadPage('dashboard');
+});
