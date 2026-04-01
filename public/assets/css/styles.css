@@ -756,6 +756,97 @@ p {
     justify-content: center;
   }
 }
+.marki-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+}
+
+.marki-modal.is-open {
+  display: block;
+}
+
+.marki-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.marki-modal__dialog {
+  position: relative;
+  width: min(92vw, 520px);
+  margin: 6vh auto 0;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.marki-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.marki-modal__header h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.marki-modal__close {
+  border: 0;
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.marki-modal__form {
+  display: grid;
+  gap: 16px;
+}
+
+.marki-form__group {
+  display: grid;
+  gap: 8px;
+}
+
+.marki-form__group label {
+  font-weight: 600;
+}
+
+.marki-form__group input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #d9d9e3;
+  border-radius: 12px;
+  padding: 0 14px;
+  font: inherit;
+}
+
+.marki-form__message {
+  min-height: 24px;
+  font-size: 14px;
+}
+
+.marki-form__message.is-error {
+  color: #c62828;
+}
+
+.marki-form__message.is-success {
+  color: #1b8f5a;
+}
+
+.marki-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 /* =========================================================
    DÉTAILS DU PATIENT
    ---------------------------------------------------------

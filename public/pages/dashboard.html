@@ -26,7 +26,7 @@
                 Fermer la liste
             </button>
 
-            <button class="btn-primary" id="new-patient-btn" type="button">
+            <button class="btn-primary" id="openAddPatientModalBtn" type="button">
                 <img src="assets/icons/main_content/ajoutrerPatient.png" alt="">
                 <span>Nouveau patient</span>
             </button>
@@ -298,4 +298,73 @@
             </div>
         </div>
     </div>
+<!-- modal pour btn ajouter patient -->
+    <div class="marki-modal" id="addPatientModal" aria-hidden="true">
+  <div class="marki-modal__backdrop" data-close-add-patient-modal></div>
+
+  <div
+    class="marki-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="addPatientModalTitle"
+  >
+    <div class="marki-modal__header">
+      <h2 id="addPatientModalTitle">Nouveau patient</h2>
+      <button
+        type="button"
+        class="marki-modal__close"
+        id="closeAddPatientModalBtn"
+        aria-label="Fermer la fenêtre"
+      >
+        X
+      </button>
+    </div>
+
+    <form id="addPatientForm" class="marki-modal__form" novalidate>
+      <div class="marki-form__group">
+        <label for="addPatientFullName">Nom complet</label>
+        <input
+          type="text"
+          id="addPatientFullName"
+          name="full_name"
+          placeholder="Ex. Nadia Benyahia"
+          required
+        />
+      </div>
+
+      <div class="marki-form__group">
+        <label for="addPatientPhone">Téléphone</label>
+        <input
+          type="text"
+          id="addPatientPhone"
+          name="phone"
+          placeholder="Ex. 0551223344"
+        />
+      </div>
+
+      <div class="marki-form__group">
+        <label for="addPatientBirthDate">Date de naissance</label>
+        <input
+          type="date"
+          id="addPatientBirthDate"
+          name="birth_date"
+        />
+      </div>
+
+      <input type="hidden" name="source" value="secretary" />
+
+      <div id="addPatientFormMessage" class="marki-form__message" aria-live="polite"></div>
+
+      <div class="marki-modal__actions">
+        <button type="button" class="btn btn-secondary" id="cancelAddPatientBtn">
+          Annuler
+        </button>
+
+        <button type="submit" class="btn btn-primary" id="submitAddPatientBtn">
+          Ajouter le patient
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 </section>

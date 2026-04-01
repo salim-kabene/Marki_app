@@ -1,3 +1,181 @@
+const ADD_PATIENT_API_URL = '/Marki_app/Partie_medecin/public/api/queue_add_patient.php';
+function getAddPatientModalElements() {
+  return {
+    modal: document.getElementById('addPatientModal'),
+    openBtn: document.getElementById('openAddPatientModalBtn'),
+    closeBtn: document.getElementById('closeAddPatientModalBtn'),
+    cancelBtn: document.getElementById('cancelAddPatientBtn'),
+    form: document.getElementById('addPatientForm'),
+    messageBox: document.getElementById('addPatientFormMessage'),
+    submitBtn: document.getElementById('submitAddPatientBtn'),
+    fullNameInput: document.getElementById('addPatientFullName'),
+    phoneInput: document.getElementById('addPatientPhone'),
+    birthDateInput: document.getElementById('addPatientBirthDate'),
+    backdrop: document.querySelector('[data-close-add-patient-modal]')
+  };
+}
+
+function openAddPatientModal() {
+  const { modal, fullNameInput, messageBox, form } = getAddPatientModalElements();
+  if (!modal) return;
+
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+
+  if (messageBox) {
+    messageBox.textContent = '';
+    messageBox.className = 'marki-form__message';
+  }
+
+  if (form) {
+    form.reset();
+  }
+
+  if (fullNameInput) {
+    setTimeout(() => fullNameInput.focus(), 0);
+  }
+}
+
+function closeAddPatientModal() {
+  const { modal, messageBox, form, submitBtn } = getAddPatientModalElements();
+  if (!modal) return;
+
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+
+  if (messageBox) {
+    messageBox.textContent = '';
+    messageBox.className = 'marki-form__message';
+  }
+
+  if (form) {
+    form.reset();
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ajouter le patient';
+  }
+}
+
+function setAddPatientFormMessage(message, type = 'error') {
+  const { messageBox } = getAddPatientModalElements();
+  if (!messageBox) return;
+
+  messageBox.textContent = message;
+  messageBox.className = `marki-form__message is-${type}`;
+}
+async function handleAddPatientSubmit(event) {
+  event.preventDefault();
+
+  const {
+    form,
+    submitBtn,
+    fullNameInput,
+    phoneInput,
+    birthDateInput
+  } = getAddPatientModalElements();
+
+  if (!form || !submitBtn || !fullNameInput) return;
+
+  const fullName = fullNameInput.value.trim();
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const birthDate = birthDateInput ? birthDateInput.value.trim() : '';
+
+  if (!fullName) {
+    setAddPatientFormMessage('Le nom complet est obligatoire.', 'error');
+    fullNameInput.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Ajout en cours...';
+  setAddPatientFormMessage('', 'error');
+
+  try {
+    const response = await fetch(ADD_PATIENT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        full_name: fullName,
+        phone: phone || null,
+        birth_date: birthDate || null,
+        source: 'secretary'
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setAddPatientFormMessage(
+        data?.message || 'Impossible d’ajouter le patient.',
+        'error'
+      );
+      return;
+    }
+
+    setAddPatientFormMessage(
+      data?.message || 'Patient ajouté avec succès.',
+      'success'
+    );
+
+    if (typeof loadDashboardData === 'function') {
+      await loadDashboardData();
+    }
+
+    setTimeout(() => {
+      closeAddPatientModal();
+    }, 500);
+
+  } catch (error) {
+    console.error(error);
+    setAddPatientFormMessage(
+      'Une erreur réseau est survenue. Réessaie.',
+      'error'
+    );
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Ajouter le patient';
+  }
+}
+function bindAddPatientModalEvents() {
+  const {
+    openBtn,
+    closeBtn,
+    cancelBtn,
+    backdrop,
+    form,
+    modal
+  } = getAddPatientModalElements();
+
+  if (openBtn) {
+    openBtn.addEventListener('click', openAddPatientModal);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeAddPatientModal);
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeAddPatientModal);
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeAddPatientModal);
+  }
+
+  if (form) {
+    form.addEventListener('submit', handleAddPatientSubmit);
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal?.classList.contains('is-open')) {
+      closeAddPatientModal();
+    }
+  });
+}
 // ==========================================================
 // MENU / NAVIGATION
 // ==========================================================
@@ -53,6 +231,7 @@ function initPage(page) {
 // ==========================================================
 
 function initDashboardPage() {
+    bindAddPatientModalEvents();
     loadDashboardData();
 }
 
