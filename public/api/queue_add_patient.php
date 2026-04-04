@@ -103,6 +103,29 @@ try {
         $today
     );
 
+    /*
+|--------------------------------------------------------------------------
+| Règle métier V1 : impossible d'ajouter un patient si la liste est fermée
+|--------------------------------------------------------------------------
+| Pourquoi cette vérification côté backend ?
+| - sécurité métier réelle
+| - empêche les appels API forcés
+| - garde le système cohérent même si le front change plus tard
+|--------------------------------------------------------------------------
+*/
+if (($queue['status'] ?? '') !== 'open') {
+    http_response_code(409);
+
+    echo json_encode([
+        'ok' => false,
+        'message' => 'La liste du jour est fermée. Impossible d’ajouter un nouveau patient.',
+        'data' => [
+            'queue' => $queue,
+        ],
+    ], JSON_UNESCAPED_UNICODE);
+
+    exit;
+}
    $queueEntryRepository = new QueueEntryRepository();
 
 $existingWaitingEntry = $queueEntryRepository->findWaitingByQueueAndPatientId(
@@ -166,3 +189,4 @@ echo json_encode([
         'error' => $e->getMessage(),
     ], JSON_UNESCAPED_UNICODE);
 }
+

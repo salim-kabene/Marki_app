@@ -151,6 +151,129 @@ class QueueEntryRepository
         return $counts;
     }
 
+    public function findById(int $entryId, int $clinicId): ?array
+{
+    $sql = "
+        SELECT
+            qe.id,
+            qe.queue_id,
+            qe.clinic_id,
+            qe.patient_id,
+            qe.display_name,
+            qe.phone,
+            qe.birth_date,
+            qe.source,
+            qe.status,
+            qe.position_number,
+            qe.created_at,
+            qe.called_at,
+            qe.done_at,
+            qe.canceled_at,
+            qe.no_show_at,
+            qe.created_by_user_id,
+            qe.updated_by_user_id
+        FROM queue_entries qe
+        WHERE qe.id = :id
+          AND qe.clinic_id = :clinic_id
+        LIMIT 1
+    ";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $entryId,
+        ':clinic_id' => $clinicId,
+    ]);
+
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        'id' => (int) $row['id'],
+        'queue_id' => (int) $row['queue_id'],
+        'clinic_id' => (int) $row['clinic_id'],
+        'patient_id' => $row['patient_id'] !== null ? (int) $row['patient_id'] : null,
+        'number' => $row['position_number'] !== null ? (int) $row['position_number'] : null,
+        'display_name' => $row['display_name'],
+        'phone' => $row['phone'],
+        'birth_date' => $row['birth_date'],
+        'source' => $row['source'],
+        'status' => $row['status'],
+        'time' => date('H:i', strtotime($row['created_at'])),
+        'created_at' => $row['created_at'],
+        'called_at' => $row['called_at'],
+        'done_at' => $row['done_at'],
+        'canceled_at' => $row['canceled_at'],
+        'no_show_at' => $row['no_show_at'],
+    ];
+}
+
+public function updateStatus(
+    int $entryId,
+    int $clinicId,
+    string $newStatus,
+    int $updatedByUserId
+): array {
+    $allowedStatuses = ['waiting', 'done', 'no_show'];
+
+    if (!in_array($newStatus, $allowedStatuses, true)) {
+        throw new InvalidArgumentException('Statut invalide.');
+    }
+
+    $existingEntry = $this->findById($entryId, $clinicId);
+
+    if (!$existingEntry) {
+        throw new RuntimeException('Entrée introuvable.');
+    }
+
+    $doneAt = null;
+    $noShowAt = null;
+
+    if ($newStatus === 'done') {
+        $doneAt = date('Y-m-d H:i:s');
+    }
+
+    if ($newStatus === 'no_show') {
+        $noShowAt = date('Y-m-d H:i:s');
+    }
+
+    if ($newStatus === 'waiting') {
+        $doneAt = null;
+        $noShowAt = null;
+    }
+
+    $sql = "
+        UPDATE queue_entries
+        SET
+            status = :status,
+            done_at = :done_at,
+            no_show_at = :no_show_at,
+            updated_by_user_id = :updated_by_user_id
+        WHERE id = :id
+          AND clinic_id = :clinic_id
+        LIMIT 1
+    ";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':status' => $newStatus,
+        ':done_at' => $doneAt,
+        ':no_show_at' => $noShowAt,
+        ':updated_by_user_id' => $updatedByUserId,
+        ':id' => $entryId,
+        ':clinic_id' => $clinicId,
+    ]);
+
+    $updatedEntry = $this->findById($entryId, $clinicId);
+
+    if (!$updatedEntry) {
+        throw new RuntimeException('Impossible de récupérer l’entrée après mise à jour.');
+    }
+
+    return $updatedEntry;
+}
     /*
     |--------------------------------------------------------------------------
     | Récupérer la prochaine position dans la queue

@@ -52,48 +52,40 @@
                 </div>
 
                 <div class="panel__content">
-                    <div class="patient-details-card">
+                    <div class="patient-details-card" id="patient-details-card">
                         <div class="patient-details-card__identity">
-                            <h3>Amine Benali</h3>
-                            <p>0551 00 00 01</p>
+                            <h3 id="patient-details-name">Aucun patient sélectionné</h3>
+                            <p id="patient-details-phone">-</p>
                         </div>
 
                         <div class="patient-detail-item">
                             <span class="label">Date de naissance</span>
-                            <span class="value">10/02/1996</span>
+                            <span class="value" id="patient-details-birth-date">-</span>
                         </div>
 
                         <div class="patient-detail-item">
                             <span class="label">Source d'inscription</span>
-                            <span class="value">Secrétaire</span>
+                            <span class="value" id="patient-details-source">-</span>
                         </div>
 
                         <div class="patient-detail-item">
                             <span class="label">Statut actuel</span>
-                            <span class="value">
-                                <span class="status-pill status-pill--waiting">En attente</span>
+                            <span class="value" id="patient-details-status">
+                                <span class="status-pill">-</span>
                             </span>
                         </div>
 
                         <div class="patient-detail-item patient-detail-item--notes">
                             <span class="label">Notes cabinet</span>
-                            <p class="value">Patient régulier, à prévenir en cas de retard important.</p>
+                            <p class="value" id="patient-details-notes">Aucune note disponible.</p>
                         </div>
 
                         <div class="patient-detail-item patient-detail-item--history">
                             <span class="label">Dernières visites</span>
-                            <ul class="visit-history">
+                            <ul class="visit-history" id="patient-details-history">
                                 <li>
-                                    <span>25 février 2025</span>
-                                    <strong class="history-status history-status--done">Terminé</strong>
-                                </li>
-                                <li>
-                                    <span>10 février 2025</span>
-                                    <strong class="history-status history-status--absent">Absent</strong>
-                                </li>
-                                <li>
-                                    <span>03 janvier 2025</span>
-                                    <strong class="history-status history-status--done">Terminé</strong>
+                                    <span>Aucune visite récente</span>
+                                    <strong class="history-status">-</strong>
                                 </li>
                             </ul>
                         </div>
