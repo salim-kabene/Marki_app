@@ -200,12 +200,181 @@
     window.addEventListener('scroll', hideTooltip, { passive: true });
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Menu « changer de médecin »
+  |--------------------------------------------------------------------------
+  | Le select reste la source de vérité (et garde son évènement change).
+  | Un menu aux couleurs de MARKI le remplace visuellement : initiales,
+  | nom, spécialité et coche sur le médecin affiché.
+  |--------------------------------------------------------------------------
+  */
+  function escapeMenuText(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value ?? '');
+    return div.innerHTML;
+  }
+
+  function doctorInitials(name) {
+    const parts = String(name || '')
+      .trim()
+      .replace(/^dr\.?\s+/i, '')
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!parts.length) return '—';
+    return `${parts[0][0] || ''}${parts.length > 1 ? parts[parts.length - 1][0] : ''}`.toUpperCase();
+  }
+
+  function initDoctorMenu() {
+    const select = document.getElementById('header-doctor-select');
+    const profile = select?.closest('.profile-info');
+    if (!select || !profile) return;
+
+    profile.classList.add('has-doctor-menu');
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'doctor-menu__trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', 'Changer de médecin');
+    profile.appendChild(trigger);
+
+    const menu = document.createElement('div');
+    menu.className = 'doctor-menu';
+    menu.hidden = true;
+    menu.innerHTML = `
+      <p class="doctor-menu__title">Afficher la liste de</p>
+      <ul class="doctor-menu__list" role="listbox" aria-label="Médecins"></ul>
+    `;
+    document.body.appendChild(menu);
+    const list = menu.querySelector('.doctor-menu__list');
+
+    const render = () => {
+      list.innerHTML = [...select.options].map(option => {
+        const isCurrent = option.value === select.value;
+        return `
+          <li>
+            <button
+              type="button"
+              class="doctor-menu__option${isCurrent ? ' is-current' : ''}"
+              role="option"
+              aria-selected="${isCurrent ? 'true' : 'false'}"
+              data-doctor-id="${escapeMenuText(option.value)}"
+            >
+              <span class="doctor-menu__avatar" aria-hidden="true">${escapeMenuText(doctorInitials(option.textContent))}</span>
+              <span class="doctor-menu__text">
+                <strong>${escapeMenuText(option.textContent.trim())}</strong>
+                <small>${escapeMenuText(option.dataset.specialty || 'Médecin')}</small>
+              </span>
+              <svg class="mk-icon mk-icon--sm doctor-menu__check" aria-hidden="true"><use href="#mk-check"></use></svg>
+            </button>
+          </li>
+        `;
+      }).join('');
+    };
+
+    const place = () => {
+      const box = profile.getBoundingClientRect();
+      const width = Math.min(288, window.innerWidth - 16);
+      menu.style.width = `${width}px`;
+      menu.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - width - 8))}px`;
+      menu.style.top = `${Math.round(box.bottom + 6)}px`;
+    };
+
+    const close = ({ focusTrigger = false } = {}) => {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      profile.classList.remove('is-menu-open');
+      if (focusTrigger) trigger.focus();
+    };
+
+    const open = () => {
+      render();
+      menu.hidden = false;
+      place();
+      trigger.setAttribute('aria-expanded', 'true');
+      profile.classList.add('is-menu-open');
+      menu.classList.remove('is-entering');
+      void menu.offsetWidth;
+      menu.classList.add('is-entering');
+      (list.querySelector('.is-current') || list.querySelector('button'))?.focus();
+    };
+
+    trigger.addEventListener('click', () => (menu.hidden ? open() : close()));
+
+    list.addEventListener('click', event => {
+      const option = event.target.closest('[data-doctor-id]');
+      if (!option) return;
+
+      if (option.dataset.doctorId === select.value) {
+        close({ focusTrigger: true });
+        return;
+      }
+
+      // Le changement passe par le select : même chemin qu'avant.
+      option.classList.add('is-loading');
+      list.querySelectorAll('button').forEach(button => { button.disabled = true; });
+      select.value = option.dataset.doctorId;
+      select.dispatchEvent(new Event('change'));
+    });
+
+    // Si le changement échoue, le select est réactivé : le menu aussi.
+    new MutationObserver(() => {
+      if (!select.disabled && !menu.hidden) render();
+    }).observe(select, { attributes: true, attributeFilter: ['disabled'] });
+
+    menu.addEventListener('keydown', event => {
+      const buttons = [...list.querySelectorAll('button:not(:disabled)')];
+      const index = buttons.indexOf(document.activeElement);
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close({ focusTrigger: true });
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        buttons[(index + step + buttons.length) % buttons.length]?.focus();
+      } else if (event.key === 'Tab') {
+        close();
+      }
+    });
+
+    document.addEventListener('pointerdown', event => {
+      if (menu.hidden || menu.contains(event.target) || trigger.contains(event.target)) return;
+      close();
+    });
+
+    window.addEventListener('resize', () => { if (!menu.hidden) place(); });
+    window.addEventListener('scroll', () => { if (!menu.hidden) place(); }, { passive: true });
+  }
+
+  /* Menu du compte : se referme au clic ailleurs ou avec Échap. */
+  function initAccountMenu() {
+    const menu = document.querySelector('.account-menu');
+    if (!menu) return;
+
+    document.addEventListener('pointerdown', event => {
+      if (menu.open && !menu.contains(event.target)) menu.open = false;
+    });
+
+    menu.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menu.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     window.setInterval(updateClock, 1000);
     document
       .getElementById('header-doctor-select')
       ?.addEventListener('change', changeDoctor);
+    initDoctorMenu();
+    initAccountMenu();
 
     document.querySelectorAll('.sidebar__item[role="button"]').forEach(item => {
       item.addEventListener('keydown', event => {

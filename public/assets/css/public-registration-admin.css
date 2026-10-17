@@ -96,9 +96,12 @@
 .qr-code-canvas canvas,
 .qr-code-canvas img {
   display: block;
-  width: 236px !important;
-  height: 236px !important;
-  image-rendering: pixelated;
+  width: 100%;
+  max-width: 236px;
+  height: auto !important;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .qr-code-canvas__error {
@@ -302,4 +305,140 @@
   color: var(--mk-color-neutral-600);
   font-size: 0.86rem;
   line-height: 1.5;
+}
+
+/* Présentation de marque du QR médecin. */
+.v1-settings-page > .qr-admin-card {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  border-color: var(--mk-border-color-brand);
+  box-shadow: var(--mk-shadow-lg);
+}
+
+.qr-admin-card > .qr-admin-card__header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--mk-color-primary-50), var(--mk-color-accent-50));
+}
+
+.qr-admin-card > .qr-admin-card__header::after {
+  content: "";
+  position: absolute;
+  inset-block-start: -4rem;
+  inset-inline-end: -3rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 50%;
+  background: var(--mk-alpha-primary-12);
+  pointer-events: none;
+}
+
+.qr-admin-card__header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.qr-admin-preview {
+  border-color: var(--mk-border-color-brand);
+  background:
+    radial-gradient(circle at 0 0, var(--mk-color-accent-100), transparent 34%),
+    linear-gradient(160deg, var(--mk-surface-card), var(--mk-surface-brand-soft));
+  box-shadow: var(--mk-shadow-md);
+}
+
+.qr-code-brand-frame {
+  width: min(100%, 318px);
+  margin: 1.25rem auto 1rem;
+  padding: var(--mk-space-3);
+  border: 1px solid var(--mk-border-color-brand);
+  border-radius: var(--mk-radius-xl);
+  background: linear-gradient(145deg, var(--mk-color-accent-50), var(--mk-color-primary-50));
+  box-shadow: var(--mk-shadow-lg);
+}
+
+.qr-code-brand-frame__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mk-space-2);
+  padding-bottom: var(--mk-space-3);
+  color: var(--mk-text-main);
+  font-size: var(--mk-font-size-sm);
+  font-weight: var(--mk-font-weight-bold);
+  letter-spacing: 0.16em;
+}
+
+.qr-code-brand-frame__mark {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: var(--mk-radius-pill);
+  color: var(--mk-text-on-brand);
+  background: var(--mk-gradient-brand);
+  letter-spacing: 0;
+  box-shadow: var(--mk-shadow-sm);
+}
+
+.qr-code-brand-frame .qr-code-canvas {
+  margin: 0 auto;
+  border-color: color-mix(in srgb, var(--mk-color-primary-200) 70%, var(--mk-color-accent-200));
+  box-shadow: inset 0 0 0 5px var(--mk-surface-card), var(--mk-shadow-sm);
+}
+
+.qr-code-brand-frame__doctor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mk-space-2);
+  padding: var(--mk-space-3) var(--mk-space-2) 0;
+  color: var(--mk-text-main);
+}
+
+.qr-code-brand-frame__doctor > span {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: var(--mk-radius-pill);
+  color: var(--mk-text-on-brand);
+  background: var(--mk-gradient-emerald);
+  font-size: var(--mk-font-size-xs);
+  font-weight: var(--mk-font-weight-bold);
+}
+
+.qr-code-brand-frame__doctor strong {
+  max-width: 13rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qr-admin-clinic {
+  color: var(--mk-text-main);
+  font-weight: var(--mk-font-weight-semibold);
+}
+
+.qr-admin-scan-hint {
+  display: inline-flex;
+  margin-top: var(--mk-space-2);
+  padding: var(--mk-space-2) var(--mk-space-3);
+  border-radius: var(--mk-radius-pill);
+  color: var(--mk-color-primary-700);
+  background: var(--mk-color-primary-50);
+  font-weight: var(--mk-font-weight-semibold);
+}
+
+.qr-admin-metrics > div:nth-child(1) { background: var(--mk-color-primary-50); }
+.qr-admin-metrics > div:nth-child(2) { background: var(--mk-color-success-soft); }
+.qr-admin-metrics > div:nth-child(3) { background: var(--mk-color-accent-50); }
+
+@media (max-width: 720px) {
+  .qr-code-brand-frame {
+    padding: var(--mk-space-2);
+  }
+
+  .qr-code-brand-frame .qr-code-canvas {
+    width: min(100%, 274px);
+  }
 }

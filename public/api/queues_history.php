@@ -47,6 +47,14 @@ try {
         );
     }
 
+    // L'historique n'affiche jamais une journée passée encore « active ».
+    require_once __DIR__ . '/../../app/repositories/QueueRepository.php';
+    (new QueueRepository())->closeExpiredQueues(
+        (int) $context['clinic_id'],
+        (int) $context['doctor_id'],
+        (new DateTimeImmutable((string) $context['today']))->format('Y-m-d')
+    );
+
     $repository = new QueueHistoryRepository();
     $result = $repository->paginate(
         (int) $context['clinic_id'],

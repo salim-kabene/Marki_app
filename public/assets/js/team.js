@@ -131,6 +131,11 @@
     });
   }
 
+  const MONTHS_FR = [
+    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+  ];
+
   function formatDateTime(value) {
     if (!value) return 'Jamais';
 
@@ -138,9 +143,14 @@
       /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/
     );
 
-    return match
-      ? `${match[3]}/${match[2]}/${match[1]} à ${match[4]}:${match[5]}`
-      : escapeHtml(value);
+    if (!match) return escapeHtml(value);
+
+    const day = parseInt(match[3], 10);
+    const monthIndex = parseInt(match[2], 10) - 1;
+    const year = match[1];
+    const monthName = MONTHS_FR[monthIndex] || match[2];
+
+    return `${day} ${monthName} ${year} à ${match[4]}:${match[5]}`;
   }
 
   function localPhoneDigits(value) {

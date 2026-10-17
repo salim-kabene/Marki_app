@@ -408,8 +408,8 @@ $defaultExpiry = (int) (
                                         <strong><?= platformE($invitation['recipient_label'] ?: 'Non précisé') ?></strong>
                                         <small><?= platformE($invitation['recipient_email'] ?: '') ?></small>
                                     </td>
-                                    <td><?= platformE(date('d/m/Y H:i', strtotime((string) $invitation['created_at']))) ?></td>
-                                    <td><?= platformE(date('d/m/Y H:i', strtotime((string) $invitation['expires_at']))) ?></td>
+                                    <td><?= platformE(markiFormatFrenchDateTime((string) $invitation['created_at'])) ?></td>
+                                    <td><?= platformE(markiFormatFrenchDateTime((string) $invitation['expires_at'])) ?></td>
                                     <td><span class="platform-status is-<?= platformE($invitation['status']) ?>"><?= platformE($statusLabels[$invitation['status']] ?? $invitation['status']) ?></span></td>
                                     <td>
                                         <?php if ($invitation['clinic_name']): ?>

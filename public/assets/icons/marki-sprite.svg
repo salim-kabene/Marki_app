@@ -63,6 +63,11 @@
 
 <!-- ============ ACTIONS PATIENT ============ -->
 
+<symbol id="mk-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 5v14"/><path d="M5 12h14"/>
+</symbol>
+
 <symbol id="mk-user-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
   <circle cx="10" cy="8" r="3.5"/>
@@ -331,6 +336,54 @@
   <circle cx="45" cy="45" r="11" fill="#4f46e5" stroke="#ffffff" stroke-width="3"/>
   <circle cx="45" cy="42" r="3.2" fill="#ffffff"/>
   <path d="M39 50.5C39 47.5 41.5 45.8 45 45.8C48.5 45.8 51 47.5 51 50.5" fill="#ffffff"/>
+</symbol>
+
+<!-- Suivi patient public -->
+<symbol id="mk-refresh-cw" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/>
+  <path d="M4 3.5V8h4.5"/>
+  <path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/>
+  <path d="M20 20.5V16h-4.5"/>
+</symbol>
+
+<symbol id="mk-x" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 6l12 12M18 6 6 18"/>
+</symbol>
+
+<symbol id="mk-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M12 7.5v5.5"/>
+  <path d="M12 16.5h.01"/>
+</symbol>
+
+<symbol id="mk-building" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/>
+  <path d="M14 9h5a1 1 0 0 1 1 1v11"/>
+  <path d="M2.5 21h19"/>
+  <path d="M7.5 8h3M7.5 12h3M7.5 16h3M17 13h.01M17 17h.01"/>
+</symbol>
+
+<symbol id="mk-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 3h12a1 1 0 0 1 1 1v16.5l-2.3-1.5-2.4 1.5-2.3-1.5-2.3 1.5-2.4-1.5L5 20.5V4a1 1 0 0 1 1-1z"/>
+  <path d="M10.5 7.5 9.5 15M14.5 7.5l-1 7.5M8.5 10h7M8 12.8h7"/>
+</symbol>
+
+<symbol id="mk-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/>
+  <path d="M10.3 20a1.9 1.9 0 0 0 3.4 0"/>
+</symbol>
+
+<symbol id="mk-radio" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="2"/>
+  <path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4"/>
+  <path d="M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/>
 </symbol>
 
 </svg>

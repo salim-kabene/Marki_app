@@ -23,7 +23,8 @@ try {
         (int) $context['doctor_id'],
         trim((string) ($_GET['q'] ?? '')),
         max(1, (int) ($_GET['page'] ?? 1)),
-        (int) ($_GET['per_page'] ?? 12)
+        (int) ($_GET['per_page'] ?? 15),
+        ($_GET['sort'] ?? '') === 'name' ? 'name' : 'recent'
     );
 
     echo json_encode([

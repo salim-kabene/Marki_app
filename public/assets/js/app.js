@@ -48,8 +48,14 @@ const dashboardState = {
   pageSize: 12,
   currentPage: 1,
   selectedEntryId: null,
-  scrollToEntryId: null
+  expandedEntryId: null,
+  scrollToEntryId: null,
+  // Fiche complète ouverte dans la carte (mobile).
+  inlineRecordPatientId: null
 };
+
+// Fiches complètes déjà chargées, réaffichées après un rafraîchissement.
+const inlinePatientRecordCache = new Map();
 
 /*
 |--------------------------------------------------------------------------
@@ -168,6 +174,32 @@ function getAddPatientModalElements() {
       'sharedPhoneConfirmText'
     )
   };
+}
+
+function frenchBirthDateToIso(value) {
+  const normalized = String(value || '').trim();
+  if (!normalized) return '';
+  const match = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+  const iso = `${match[3]}-${match[2]}-${match[1]}`;
+  const date = new Date(`${iso}T00:00:00`);
+  return !Number.isNaN(date.getTime())
+    && date.getFullYear() === Number(match[3])
+    && date.getMonth() + 1 === Number(match[2])
+    && date.getDate() === Number(match[1])
+      ? iso
+      : null;
+}
+
+function bindFrenchBirthDateInput(input) {
+  if (!input || input.dataset.frenchDateBound === '1') return;
+  input.dataset.frenchDateBound = '1';
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    input.value = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)]
+      .filter(Boolean)
+      .join('/');
+  });
 }
 /*
 |--------------------------------------------------------------------------
@@ -558,7 +590,13 @@ async function handleAddPatientSubmit(event) {
   const mode = formModeInput?.value || 'create';
   const fullName = normalizePersonName(fullNameInput.value);
   const phone = normalizePhoneNumber(phoneInput.value);
-  const birthDate = birthDateInput?.value.trim() || '';
+  const birthDate = frenchBirthDateToIso(birthDateInput?.value);
+
+  if (birthDate === null) {
+    setAddPatientFormMessage('Saisissez la date de naissance au format JJ/MM/AAAA.', 'error');
+    birthDateInput?.focus();
+    return;
+  }
 
   fullNameInput.value = fullName;
   /*
@@ -1113,6 +1151,7 @@ function bindAddPatientModalEvents() {
     'change',
     clearPatientFormFeedback
   );
+  bindFrenchBirthDateInput(birthDateInput);
 }
 /*
 |--------------------------------------------------------------------------
@@ -1273,18 +1312,21 @@ function bindQueueDayControls() {
       await loadDashboardData();
     };
 
+    // Clôturer = la journée est finie : tous les patients doivent être passés.
     if (waitingCount === 0) {
-      try {
-        await completeDay();
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
+      openQueueActionConfirmation({
+        title: 'Clôturer la journée ?',
+        message: 'Tous les patients sont passés. La liste du jour sera fermée et plus personne ne pourra s’inscrire aujourd’hui. Vous pourrez annuler la clôture si vous vous êtes trompé.',
+        confirmLabel: 'Clôturer la journée',
+        confirmType: 'primary',
+        onConfirm: completeDay
+      });
       return;
     }
 
     openQueueActionConfirmation({
       title: 'Clôturer la journée ?',
-      message: `${waitingCount} patient(s) sont encore en attente. Ils seront tous marqués « Annulés — fin de journée » et devront s’inscrire de nouveau lors d’une prochaine journée.`,
+      message: `Pour clôturer, tous les patients doivent être passés. Il reste ${waitingCount} patient(s) en attente. Si vous clôturez maintenant, ils seront annulés (« fin de journée ») et devront se réinscrire un autre jour. Pour les garder, mettez plutôt la liste en pause.`,
       confirmLabel: `Clôturer et annuler ${waitingCount} inscription(s)`,
       secondaryLabel: 'Mettre en pause',
       onSecondary: async () => {
@@ -1301,7 +1343,7 @@ function bindQueueDayControls() {
 // ==========================================================
 
 function setActiveMenuItem(page) {
-    document.querySelectorAll('.sidebar__item').forEach(item => {
+    document.querySelectorAll('.sidebar__item, .mobile-bottom-nav__item').forEach(item => {
         item.classList.remove('active');
 
         if (item.getAttribute('data-page') === page) {
@@ -1316,6 +1358,21 @@ function setActiveMenuItem(page) {
 
 let markiPageLoadController = null;
 let markiPageLoadSequence = 0;
+let markiCurrentPage = null;
+
+const MARKI_NAV_ORDER = ['dashboard', 'patients', 'lists', 'settings'];
+
+/*
+| Sens de la transition : la page glisse depuis la droite quand on avance
+| dans la barre de navigation, depuis la gauche quand on recule.
+*/
+function getPageTransitionDirection(fromPage, toPage) {
+  const from = MARKI_NAV_ORDER.indexOf(fromPage);
+  const to = MARKI_NAV_ORDER.indexOf(toPage);
+
+  if (from < 0 || to < 0 || from === to) return 'none';
+  return to > from ? 'forward' : 'back';
+}
 
 async function loadPage(page) {
   const mainContent = document.getElementById('main-content');
@@ -1323,6 +1380,9 @@ async function loadPage(page) {
   if (!mainContent) {
     return;
   }
+
+  mainContent.dataset.navDirection = getPageTransitionDirection(markiCurrentPage, page);
+  markiCurrentPage = page;
 
   markiPageLoadController?.abort();
   markiPageLoadController = new AbortController();
@@ -1397,6 +1457,8 @@ function resetDashboardViewState() {
   dashboardState.currentPage = 1;
   dashboardState.selectedEntryId = null;
   dashboardState.scrollToEntryId = null;
+  dashboardState.inlineRecordPatientId = null;
+  inlinePatientRecordCache.clear();
 }
 
 /*
@@ -2073,6 +2135,10 @@ function initDashboardPage() {
   */
   loadDashboardData({
     focusCurrent: true
+  }).then(() => {
+    if (!markiOpenAddPatientAfterLoad) return;
+    markiOpenAddPatientAfterLoad = false;
+    openAddPatientFromFab();
   });
   startDashboardAutoRefresh();
 }
@@ -2252,18 +2318,26 @@ function updateAddPatientButtonState(queue) {
     && queue?.day_status === 'active';
 
   addPatientButton.disabled = !canRegister;
+  document
+    .getElementById('mobileFabAddPatient')
+    ?.classList.toggle('is-unavailable', !canRegister);
 
   const buttonLabel = addPatientButton.querySelector('span');
+  const buttonIconUse = addPatientButton.querySelector('use');
 
   if (buttonLabel) {
     if (queue?.day_status === 'completed') {
       buttonLabel.textContent = 'Journée clôturée';
+      if (buttonIconUse) buttonIconUse.setAttribute('href', '#mk-check-circle');
     } else if (queue?.day_status === 'paused') {
       buttonLabel.textContent = 'Liste en pause';
+      if (buttonIconUse) buttonIconUse.setAttribute('href', '#mk-pause');
     } else if (queue?.registration_status === 'closed') {
       buttonLabel.textContent = 'Inscriptions fermées';
+      if (buttonIconUse) buttonIconUse.setAttribute('href', '#mk-lock');
     } else {
       buttonLabel.textContent = '+ Nouveau patient';
+      if (buttonIconUse) buttonIconUse.setAttribute('href', '#mk-user-plus');
     }
   }
 
@@ -2393,6 +2467,279 @@ function updateQueueStatusBadge(queue) {
 | La liste conserve toujours son ordre FIFO.
 |--------------------------------------------------------------------------
 */
+function getPatientInitials(displayName) {
+  const parts = String(displayName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'P';
+  return parts.length > 1
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : parts[0].substring(0, 2).toUpperCase();
+}
+
+function canOpenPatientRecords() {
+  return Boolean(document.querySelector('.sidebar__item[data-page="patients"]'));
+}
+
+/*
+| Détails dépliables d'une ligne (mobile) : seules les informations
+| renseignées sont affichées.
+*/
+function renderPatientRowDetails(entry) {
+  const items = [];
+
+  if (entry.birth_date) {
+    items.push(`
+      <div class="patient-row-details__item">
+        <dt>Date de naissance</dt>
+        <dd>${escapeHtml(formatBirthDate(entry.birth_date))}</dd>
+      </div>
+    `);
+  }
+
+  if (entry.source) {
+    items.push(`
+      <div class="patient-row-details__item">
+        <dt>Inscription</dt>
+        <dd>${escapeHtml(formatSourceLabel(entry.source))}</dd>
+      </div>
+    `);
+  }
+
+  const note = (entry.patient_notes || '').trim();
+  const visits = Array.isArray(entry.recent_visits) ? entry.recent_visits : [];
+  const patientId = Number(entry.patient_id || 0);
+  const canOpenRecord = canOpenPatientRecords() && patientId > 0;
+  // Après un rafraîchissement, la fiche ouverte reste affichée.
+  const cachedRecord = canOpenRecord
+    && dashboardState.inlineRecordPatientId === patientId
+    ? inlinePatientRecordCache.get(patientId)
+    : null;
+
+  return `
+    <td class="patient-row-details${cachedRecord ? ' has-record' : ''}">
+      ${items.length ? `<dl class="patient-row-details__grid">${items.join('')}</dl>` : ''}
+      ${note ? `
+        <div class="patient-row-details__note">
+          <span>Note cabinet</span>
+          <p>${escapeHtml(note)}</p>
+        </div>
+      ` : ''}
+      ${visits.length ? `
+        <div class="patient-row-details__visits">
+          <span>Dernières visites</span>
+          <ul class="visit-history">${renderPatientHistory(visits)}</ul>
+        </div>
+      ` : ''}
+      ${cachedRecord ? renderInlinePatientRecord(cachedRecord, note, { animate: false }) : ''}
+      ${canOpenRecord ? `
+        <button
+          type="button"
+          class="patient-row-details__record"
+          data-patient-id="${patientId}"
+          aria-expanded="${cachedRecord ? 'true' : 'false'}"
+        >
+          <span>${cachedRecord ? 'Masquer la fiche complète' : 'Voir la fiche complète'}</span>
+          <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-chevron-down"></use></svg>
+        </button>
+      ` : ''}
+    </td>
+  `;
+}
+
+/*
+| Fiche complète affichée directement dans la carte du patient (mobile).
+| Seules les informations renseignées apparaissent.
+*/
+function renderInlinePatientRecord(patient, rowNote = '', { animate = true } = {}) {
+  const fields = [
+    ['Téléphone', patient.phone
+      ? (window.MarkiPhone ? window.MarkiPhone.formatMobile(patient.phone) : patient.phone)
+      : ''],
+    ['Date de naissance', patient.birth_date ? formatBirthDate(patient.birth_date) : ''],
+    ['E-mail', patient.email],
+    ['Adresse', patient.address],
+    ['Patient depuis', patient.created_at ? formatVisitDate(patient.created_at) : '']
+  ].filter(([, value]) => String(value || '').trim() !== '');
+
+  const notes = String(patient.notes_non_medical || '').trim();
+  const visits = (Array.isArray(patient.recent_visits) ? patient.recent_visits : [])
+    .map(visit => ({
+      status: visit.status,
+      visit_at: visit.ended_at || visit.started_at || visit.created_at
+    }));
+
+  return `
+    <section class="patient-row-record${animate ? '' : ' is-static'}" aria-label="Fiche complète">
+      <div class="patient-row-record__inner">
+        <p class="patient-row-record__title">
+          <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-document-user"></use></svg>
+          <span>Fiche complète</span>
+        </p>
+
+        ${fields.length ? `
+          <dl class="patient-row-record__grid">
+            ${fields.map(([label, value]) => `
+              <div class="patient-row-record__field">
+                <dt>${escapeHtml(label)}</dt>
+                <dd>${escapeHtml(value)}</dd>
+              </div>
+            `).join('')}
+          </dl>
+        ` : ''}
+
+        ${notes && notes !== rowNote ? `
+          <div class="patient-row-details__note">
+            <span>Note cabinet</span>
+            <p>${escapeHtml(notes)}</p>
+          </div>
+        ` : ''}
+
+        <div class="patient-row-details__visits patient-row-record__visits">
+          <span>Historique des visites (${visits.length})</span>
+          ${visits.length
+            ? `<ul class="visit-history">${renderPatientHistory(visits)}</ul>`
+            : '<p class="patient-row-record__empty">Aucune visite enregistrée.</p>'}
+        </div>
+
+        <button
+          type="button"
+          class="patient-row-record__open"
+          data-patient-id="${Number(patient.id) || 0}"
+        >
+          <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-pencil"></use></svg>
+          <span>Modifier la fiche</span>
+        </button>
+      </div>
+    </section>
+  `;
+}
+
+function renderInlinePatientRecordLoading() {
+  return `
+    <section class="patient-row-record is-loading" aria-label="Chargement de la fiche" aria-busy="true">
+      <div class="patient-row-record__inner">
+        <span class="mk-skeleton mk-skeleton--title"></span>
+        <span class="mk-skeleton mk-skeleton--text"></span>
+        <span class="mk-skeleton mk-skeleton--text"></span>
+      </div>
+    </section>
+  `;
+}
+
+function setInlineRecordButtonState(button, isOpen) {
+  if (!button) return;
+  button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  const label = button.querySelector('span');
+  if (label) {
+    label.textContent = isOpen ? 'Masquer la fiche complète' : 'Voir la fiche complète';
+  }
+}
+
+function closeInlinePatientRecord(detailsCell) {
+  const section = detailsCell?.querySelector('.patient-row-record');
+  dashboardState.inlineRecordPatientId = null;
+  detailsCell?.classList.remove('has-record');
+  setInlineRecordButtonState(detailsCell?.querySelector('.patient-row-details__record'), false);
+
+  if (!section) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    section.remove();
+    return;
+  }
+
+  section.classList.add('is-leaving');
+  section.addEventListener('animationend', () => section.remove(), { once: true });
+  // Filet de sécurité si l'animation ne se déclenche pas.
+  window.setTimeout(() => section.remove(), 400);
+}
+
+async function toggleInlinePatientRecord(button) {
+  const detailsCell = button.closest('.patient-row-details');
+  const patientId = Number(button.dataset.patientId || 0);
+
+  if (!detailsCell || patientId <= 0) return;
+
+  if (detailsCell.querySelector('.patient-row-record')) {
+    closeInlinePatientRecord(detailsCell);
+    return;
+  }
+
+  dashboardState.inlineRecordPatientId = patientId;
+  setInlineRecordButtonState(button, true);
+
+  const rowNote = detailsCell.querySelector('.patient-row-details__note p')?.textContent?.trim() || '';
+  const cached = inlinePatientRecordCache.get(patientId);
+
+  if (cached) {
+    button.insertAdjacentHTML('beforebegin', renderInlinePatientRecord(cached, rowNote));
+    detailsCell.classList.add('has-record');
+    return;
+  }
+
+  button.insertAdjacentHTML('beforebegin', renderInlinePatientRecordLoading());
+  button.disabled = true;
+
+  try {
+    const response = await fetch(
+      `api/patient_details.php?patient_id=${encodeURIComponent(patientId)}`,
+      { cache: 'no-store' }
+    );
+    const result = await parseJsonResponseSafely(response);
+    const patient = result?.data?.patient;
+
+    if (!response.ok || !result?.ok || !patient) {
+      throw new Error(result?.message || 'Fiche patient introuvable.');
+    }
+
+    inlinePatientRecordCache.set(patientId, patient);
+
+    // La carte a pu être refermée, ou redessinée par le rafraîchissement.
+    if (dashboardState.inlineRecordPatientId !== patientId) return;
+
+    const liveButton = detailsCell.isConnected
+      ? button
+      : document.querySelector(
+        `.patient-row.is-expanded .patient-row-details__record[data-patient-id="${patientId}"]`
+      );
+    const liveCell = liveButton?.closest('.patient-row-details');
+    if (!liveCell) return;
+
+    liveCell.querySelector('.patient-row-record')?.remove();
+    liveButton.insertAdjacentHTML('beforebegin', renderInlinePatientRecord(patient, rowNote));
+    liveCell.classList.add('has-record');
+    setInlineRecordButtonState(liveButton, true);
+  } catch (error) {
+    console.error('Fiche complète :', error);
+    detailsCell.querySelector('.patient-row-record.is-loading')?.remove();
+    dashboardState.inlineRecordPatientId = null;
+    setInlineRecordButtonState(button, false);
+    showToast(error.message || 'Impossible de charger la fiche patient.', 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+/*
+| Bouton d'appel direct (mobile) : lien tel: vers le numéro du patient.
+*/
+function renderPatientCallCell(entry) {
+  const dialable = String(entry.phone || '').replace(/[^\d+]/g, '');
+  if (!dialable) return '<td class="patient-call-cell"></td>';
+
+  return `
+    <td class="patient-call-cell">
+      <a
+        class="patient-call"
+        href="tel:${escapeHtml(dialable)}"
+        aria-label="Appeler ${escapeHtml(entry.display_name ?? 'le patient')}"
+      >
+        <svg class="mk-icon" aria-hidden="true"><use href="#mk-phone"></use></svg>
+      </a>
+    </td>
+  `;
+}
+
 function renderDashboardTable(entries) {
   const tableBody = document.getElementById('day-list-table-body');
 
@@ -2428,7 +2775,46 @@ function renderDashboardTable(entries) {
   const canProcessPatients = dayStatus === 'active';
   const canEdit = dayStatus !== 'completed';
 
-  tableBody.innerHTML = entries.map(entry => {
+  const allRejoined = (dashboardState.entries || []).filter(e => Boolean(e.last_rejoined_at));
+  const isFullList = dashboardState.statusFilter === 'all' && !dashboardState.searchTerm;
+  const rowsHtml = [];
+  let prevNumber = 0;
+  const usedRejoinedIds = new Set();
+
+  entries.forEach((entry, index) => {
+    const currentNum = Number(entry.number);
+
+    if (isFullList && !isNaN(currentNum)) {
+      const startGap = index === 0 ? 1 : prevNumber + 1;
+      if (currentNum > startGap) {
+        for (let missing = startGap; missing < currentNum; missing++) {
+          const matchRejoined = allRejoined.find(r => !usedRejoinedIds.has(r.id) && Number(r.number) > missing);
+          let explanationText = 'Ce patient a été marqué comme absent puis réintégré tout en bas de la liste.';
+          if (matchRejoined) {
+            usedRejoinedIds.add(matchRejoined.id);
+            explanationText = `Ce patient a été marqué comme absent puis réintégré tout en bas de la liste (actuellement <strong>N° ${matchRejoined.number}</strong> — ${escapeHtml(matchRejoined.display_name)}).`;
+          }
+
+          rowsHtml.push(`
+            <tr class="patient-row patient-row--rejoined-info" aria-label="Information de réintégration">
+              <td class="patient-num-cell">
+                <span class="rejoined-info-num">${missing}</span>
+              </td>
+              <td colspan="5" class="rejoined-info-cell">
+                <div class="rejoined-info-content">
+                  <span class="rejoined-info-icon" aria-hidden="true">
+                    <svg class="mk-icon mk-icon--xs"><use href="#mk-undo"></use></svg>
+                  </span>
+                  <span class="rejoined-info-text">${explanationText}</span>
+                </div>
+              </td>
+            </tr>
+          `);
+        }
+      }
+      prevNumber = currentNum;
+    }
+
     const isCurrent = String(entry.id) === String(currentEntryId);
     const isSelected = String(entry.id) === String(
       dashboardState.selectedEntryId
@@ -2438,10 +2824,15 @@ function renderDashboardTable(entries) {
     const canReturnToWaiting =
       canProcessPatients && entry.status === 'no_show';
 
+    const isExpanded = String(entry.id) === String(
+      dashboardState.expandedEntryId
+    );
+
     const rowClasses = [
       'patient-row',
       isCurrent ? 'is-current' : '',
-      isSelected ? 'is-selected' : ''
+      isSelected ? 'is-selected' : '',
+      isExpanded ? 'is-expanded' : ''
     ].filter(Boolean).join(' ');
 
     let statusActions = '';
@@ -2492,17 +2883,18 @@ function renderDashboardTable(entries) {
       `;
     }
 
-    return `
-      <tr class="${rowClasses}" data-entry-id="${entry.id}">
-        <td>${entry.number}</td>
+    rowsHtml.push(`
+      <tr class="${rowClasses}" data-entry-id="${entry.id}" aria-expanded="${isExpanded ? 'true' : 'false'}">
+        <td class="patient-num-cell">${entry.number}</td>
         <td class="patient-name-cell">
-          ${escapeHtml(entry.display_name ?? '')}
+          <div class="patient-name-text">${escapeHtml(entry.display_name ?? '')}</div>
+          ${entry.patient_notes ? `<div class="patient-desc-subtext">${escapeHtml(entry.patient_notes)}</div>` : ''}
         </td>
         <td class="patient-phone-cell">
           ${escapeHtml(window.MarkiPhone ? window.MarkiPhone.formatMobile(entry.phone ?? '') : (entry.phone ?? '-'))}
         </td>
-        <td>${escapeHtml(entry.time ?? '-')}</td>
-        <td>${renderStatusPill(entry.status)}</td>
+        <td class="patient-time-cell">${escapeHtml(entry.time ?? '-')}</td>
+        <td>${renderStatusPill(entry.status, isCurrent)}</td>
         <td>
           <div class="table-actions">
             <button
@@ -2518,9 +2910,13 @@ function renderDashboardTable(entries) {
             ${statusActions}
           </div>
         </td>
+        ${renderPatientRowDetails(entry)}
+        ${renderPatientCallCell(entry)}
       </tr>
-    `;
-  }).join('');
+    `);
+  });
+
+  tableBody.innerHTML = rowsHtml.join('');
 
   bindPatientRowEvents(entries);
 }
@@ -2626,7 +3022,11 @@ function renderDashboardView() {
 | done = Terminé
 |--------------------------------------------------------------------------
 */
-function renderStatusPill(status) {
+function renderStatusPill(status, isCurrent = false) {
+    if (isCurrent || status === 'in_progress' || status === 'called') {
+        return '<span class="status-pill status-pill--in_progress">En cours</span>';
+    }
+
     if (status === 'waiting') {
         return '<span class="status-pill status-pill--waiting">En attente</span>';
     }
@@ -2643,12 +3043,13 @@ function renderStatusPill(status) {
         return '<span class="status-pill status-pill--canceled">Annulé</span>';
     }
 
-    if (status === 'called') {
-        return '<span class="status-pill status-pill--waiting">Appelé</span>';
-    }
-
     return `<span class="status-pill">${escapeHtml(status)}</span>`;
 }
+const MARKI_MONTHS_FR = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+];
+
 function formatBirthDate(value) {
     if (!value) return '-';
 
@@ -2656,7 +3057,9 @@ function formatBirthDate(value) {
     if (parts.length !== 3) return escapeHtml(String(value));
 
     const [year, month, day] = parts;
-    return `${day}/${month}/${year}`;
+    const monthIndex = parseInt(month, 10) - 1;
+    const monthName = MARKI_MONTHS_FR[monthIndex] || month;
+    return `${parseInt(day, 10)} ${monthName} ${year}`;
 }
 
 function formatSourceLabel(source) {
@@ -2668,8 +3071,8 @@ function formatSourceLabel(source) {
     return escapeHtml(String(source));
 }
 
-function renderDetailStatusPill(status) {
-    return renderStatusPill(status);
+function renderDetailStatusPill(status, isCurrent = false) {
+    return renderStatusPill(status, isCurrent);
 }
 
 function renderDefaultPatientHistory() {
@@ -2691,8 +3094,8 @@ function formatVisitDate(value) {
   }
 
   return new Intl.DateTimeFormat('fr-DZ', {
-    day: '2-digit',
-    month: '2-digit',
+    day: 'numeric',
+    month: 'long',
     year: 'numeric'
   }).format(date);
 }
@@ -2750,9 +3153,10 @@ function renderPatientHistory(visits) {
 
 function openSelectedPatientFullRecord() {
   const button = document.getElementById('view-full-patient-record-btn');
+  openPatientFullRecord(Number(button?.dataset.patientId || 0));
+}
 
-  const patientId = Number(button?.dataset.patientId || 0);
-
+function openPatientFullRecord(patientId) {
   if (patientId <= 0) {
     showToast('Aucune fiche patient liée à cette inscription.','error');
     return;
@@ -2818,35 +3222,42 @@ function updatePatientDetails(entry) {
 
   const avatarEl = document.getElementById('patient-details-avatar');
   if (avatarEl) {
-    const name = (entry.display_name || '').trim();
-    if (name) {
-      const parts = name.split(/\s+/);
-      const initials = parts.length > 1
-        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-        : parts[0].substring(0, 2).toUpperCase();
-      avatarEl.innerHTML = `<span>${escapeHtml(initials)}</span>`;
-    } else {
-      avatarEl.innerHTML = `<span>P</span>`;
-    }
+    avatarEl.innerHTML = `<span>${escapeHtml(getPatientInitials(entry.display_name))}</span>`;
   }
+
+  const currentWaiting = getCurrentWaitingEntry();
+  const isCurrentPatient = currentWaiting && String(entry.id) === String(currentWaiting.id);
 
   nameEl.textContent = entry.display_name || '-';
   phoneEl.textContent = window.MarkiPhone ? window.MarkiPhone.formatMobile(entry.phone || '') : (entry.phone || '-');
   birthDateEl.textContent = formatBirthDate(entry.birth_date);
+  const birthDateRow = birthDateEl.closest('.patient-detail-row');
+  if (birthDateRow) birthDateRow.hidden = !entry.birth_date;
   sourceEl.textContent = formatSourceLabel(entry.source);
-  statusEl.innerHTML = renderDetailStatusPill(entry.status);
+  statusEl.innerHTML = renderDetailStatusPill(entry.status, isCurrentPatient);
 
-  notesEl.textContent = entry.patient_notes?.trim()
-    || 'Aucune note disponible pour le moment.';
+  const notesCard = document.getElementById('patient-details-notes-card') || notesEl.closest('.patient-detail-card--notes');
+  const patientNote = (entry.patient_notes || '').trim();
+  if (patientNote) {
+    notesEl.textContent = patientNote;
+    if (notesCard) notesCard.hidden = false;
+  } else {
+    notesEl.textContent = '';
+    if (notesCard) notesCard.hidden = true;
+  }
 
   historyEl.innerHTML = renderPatientHistory(
     entry.recent_visits
   );
+  const historyCard = historyEl.closest('.patient-detail-card--history');
+  if (historyCard) {
+    historyCard.hidden = !(
+      Array.isArray(entry.recent_visits) && entry.recent_visits.length > 0
+    );
+  }
 
   const patientId = Number(entry.patient_id || 0);
-  const canViewPatients = Boolean(
-    document.querySelector('.sidebar__item[data-page="patients"]')
-  );
+  const canViewPatients = canOpenPatientRecords();
 
   fullRecordButton.hidden = !canViewPatients;
   fullRecordButton.disabled = !canViewPatients || patientId <= 0;
@@ -2913,6 +3324,28 @@ async function handleQueueEntryStatusAction(
 | Brancher les événements des lignes
 |--------------------------------------------------------------------------
 */
+function togglePatientRowExpansion(row, entryId) {
+  const willExpand = !row.classList.contains('is-expanded');
+
+  document.querySelectorAll('.patient-row.is-expanded').forEach(openRow => {
+    openRow.classList.remove('is-expanded');
+    openRow.setAttribute('aria-expanded', 'false');
+
+    // Une carte refermée referme aussi sa fiche complète.
+    const detailsCell = openRow.querySelector('.patient-row-record')?.closest('.patient-row-details');
+    if (detailsCell) {
+      detailsCell.querySelector('.patient-row-record')?.remove();
+      detailsCell.classList.remove('has-record');
+      setInlineRecordButtonState(detailsCell.querySelector('.patient-row-details__record'), false);
+      dashboardState.inlineRecordPatientId = null;
+    }
+  });
+
+  row.classList.toggle('is-expanded', willExpand);
+  row.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+  dashboardState.expandedEntryId = willExpand ? Number(entryId) : null;
+}
+
 function bindPatientRowEvents(entries) {
   const rows = document.querySelectorAll('.patient-row');
 
@@ -2922,7 +3355,30 @@ function bindPatientRowEvents(entries) {
     if (!entry) return;
 
     row.addEventListener('click', event => {
-      if (event.target.closest('.btn-action-icon')) return;
+      // L'appel ou une action ne déplient pas la ligne.
+      if (event.target.closest('.btn-action-icon, .patient-call')) return;
+
+      const recordButton = event.target.closest('.patient-row-details__record');
+      if (recordButton) {
+        // Sur téléphone, la fiche s'ouvre dans la carte au lieu de changer de page.
+        if (window.matchMedia('(max-width: 768px)').matches) {
+          toggleInlinePatientRecord(recordButton);
+        } else {
+          openPatientFullRecord(Number(recordButton.dataset.patientId || 0));
+        }
+        return;
+      }
+
+      const openRecordButton = event.target.closest('.patient-row-record__open');
+      if (openRecordButton) {
+        openPatientFullRecord(Number(openRecordButton.dataset.patientId || 0));
+        return;
+      }
+
+      // Un clic dans le bloc déplié ne le referme pas.
+      if (event.target.closest('.patient-row-details')) return;
+
+      togglePatientRowExpansion(row, entry.id);
       selectDashboardEntry(entry.id);
     });
 
@@ -2936,18 +3392,38 @@ function bindPatientRowEvents(entries) {
       }
     });
 
+    // Une confirmation évite les appuis accidentels (surtout sur téléphone).
     const absentButton = row.querySelector('.btn-action-icon--absent');
     absentButton?.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
-      handleQueueEntryStatusAction(absentButton, entry, 'no_show');
+      if (absentButton.disabled) return;
+
+      openQueueActionConfirmation({
+        title: 'Marquer ce patient absent ?',
+        message: `${entry.display_name} ne s’est pas présenté. Il sortira de la file d’attente. S’il arrive plus tard, vous pourrez le remettre en attente.`,
+        confirmLabel: 'Marquer absent',
+        onConfirm: async () => {
+          await handleQueueEntryStatusAction(absentButton, entry, 'no_show');
+        }
+      });
     });
 
     const doneButton = row.querySelector('.btn-action-icon--done');
     doneButton?.addEventListener('click', event => {
       event.preventDefault();
       event.stopPropagation();
-      handleQueueEntryStatusAction(doneButton, entry, 'done');
+      if (doneButton.disabled) return;
+
+      openQueueActionConfirmation({
+        title: 'Consultation terminée ?',
+        message: `${entry.display_name} sera marqué comme terminé. Attention : cette action ne peut pas être annulée.`,
+        confirmLabel: 'Oui, terminer',
+        confirmType: 'primary',
+        onConfirm: async () => {
+          await handleQueueEntryStatusAction(doneButton, entry, 'done');
+        }
+      });
     });
 
     const cancelButton = row.querySelector('.btn-action-icon--cancel');
@@ -3073,12 +3549,48 @@ function escapeHtml(value) {
 // EVENTS MENU
 // ==========================================================
 
-document.querySelectorAll('.sidebar__item').forEach(item => {
+document.querySelectorAll('.sidebar__item, .mobile-bottom-nav__item').forEach(item => {
     item.addEventListener('click', function () {
         const page = this.getAttribute('data-page');
-        setActiveMenuItem(page);
-        loadPage(page);
+        if (page) {
+            setActiveMenuItem(page);
+            loadPage(page);
+        }
     });
+});
+
+/*
+| Bouton « + » de la barre mobile : la fenêtre d'ajout vit dans la page
+| Liste du jour. Depuis une autre page, on y retourne puis on l'ouvre.
+*/
+let markiOpenAddPatientAfterLoad = false;
+
+function openAddPatientFromFab() {
+  const openBtn = document.getElementById('openAddPatientModalBtn');
+
+  if (openBtn?.disabled) {
+    const reason = openBtn.querySelector('span')?.textContent?.trim();
+    showToast(
+      reason ? `${reason} : ajout impossible pour le moment.` : 'Ajout impossible pour le moment.',
+      'error'
+    );
+    return;
+  }
+
+  openAddPatientModal();
+}
+
+document.getElementById('mobileFabAddPatient')?.addEventListener('click', function (event) {
+    event.preventDefault();
+
+    if (document.getElementById('addPatientModal')) {
+      openAddPatientFromFab();
+      return;
+    }
+
+    markiOpenAddPatientAfterLoad = true;
+    setActiveMenuItem('dashboard');
+    loadPage('dashboard');
 });
 
 // ==========================================================
@@ -3146,7 +3658,7 @@ function setPatientModalMode(mode = 'create', entry = null) {
     }
 
     if (birthDateInput) {
-      birthDateInput.value = entry?.birth_date ?? '';
+      birthDateInput.value = formatBirthDate(entry?.birth_date).replace('-', '');
     }
 
     return;

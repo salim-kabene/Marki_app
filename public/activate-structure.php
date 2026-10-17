@@ -272,7 +272,7 @@ $recipientName = (string) (
                 </section>
 
                 <button type="submit" class="activation-submit">Créer et activer mon espace MARKI</button>
-                <p class="activation-legal">Ce lien est personnel, utilisable une seule fois et expirera le <?= activationE(date('d/m/Y à H:i', strtotime((string) $invitation['expires_at']))) ?>.</p>
+                <p class="activation-legal">Ce lien est personnel, utilisable une seule fois et expirera le <?= activationE(markiFormatFrenchDateTime((string) $invitation['expires_at'])) ?>.</p>
             </form>
         <?php endif; ?>
     </main>

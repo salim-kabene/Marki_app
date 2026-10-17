@@ -92,3 +92,324 @@
   background: var(--mk-surface-page);
   font-size: var(--mk-font-size-sm);
 }
+
+/* =========================================================
+   POLISH 2026 — pages metier
+   Une profondeur legere et une hierarchie plus franche pour
+   sortir de l'aspect « formulaire administratif ».
+   ========================================================= */
+.main-content {
+  background:
+    radial-gradient(circle at 92% 2%, var(--mk-alpha-primary-08), transparent 24rem),
+    radial-gradient(circle at 8% 98%, var(--mk-alpha-accent-16), transparent 28rem),
+    var(--mk-surface-page);
+}
+
+.v1-page,
+.day-list-page {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-bottom: clamp(2rem, 4vh, 3.5rem);
+}
+
+.v1-page__header,
+.day-list-page__top {
+  position: relative;
+  padding-bottom: var(--mk-space-4);
+}
+
+.v1-page__header::after,
+.day-list-page__top::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--mk-border-color-brand), transparent 78%);
+}
+
+.v1-page__header h2,
+.day-list-page__heading h2 {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.v1-page__header > div:first-child,
+.day-list-page__heading {
+  max-width: 48rem;
+}
+
+.v1-card,
+.panel,
+.waiting-list,
+.counter,
+.v1-toolbar {
+  border-color: color-mix(in srgb, var(--mk-border-color) 82%, var(--mk-color-primary-200));
+  box-shadow: var(--mk-shadow-md);
+}
+
+.v1-card__header,
+.panel__header {
+  background: linear-gradient(135deg, var(--mk-surface-card), var(--mk-surface-brand-soft));
+}
+
+.v1-card__header h3,
+.panel__header h2 {
+  color: var(--mk-text-main);
+}
+
+.v1-toolbar {
+  position: relative;
+  overflow: hidden;
+}
+
+.v1-toolbar::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--mk-gradient-logo);
+}
+
+.v1-table tbody tr[data-selectable="true"]:hover {
+  background: linear-gradient(90deg, var(--mk-surface-brand-soft), var(--mk-surface-card));
+}
+
+.v1-table tbody tr.is-selected {
+  background: linear-gradient(90deg, var(--mk-color-primary-100), var(--mk-color-primary-50));
+}
+
+.v1-patient-profile,
+.v1-queue-detail {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mk-color-primary-200) transparent;
+}
+
+.v1-settings-grid > .v1-card {
+  position: relative;
+}
+
+.v1-settings-grid > .v1-card::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: 4px;
+  height: 4rem;
+  border-radius: 0 0 var(--mk-radius-pill) 0;
+  background: var(--mk-gradient-brand);
+}
+
+.v1-settings-actions {
+  position: sticky;
+  z-index: var(--mk-z-sticky);
+  bottom: var(--mk-space-3);
+  background: color-mix(in srgb, var(--mk-surface-card) 88%, transparent);
+  border-color: var(--mk-border-color-brand);
+  box-shadow: var(--mk-shadow-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.v1-collapsible-section {
+  border-color: var(--mk-border-color-brand);
+}
+
+.v1-collapsible-section > .v1-card__header {
+  min-height: 6.25rem;
+}
+
+/* Fiche patient : lecture claire, édition volontaire dans une fenêtre séparée. */
+.v1-patients-page .v1-patient-profile .v1-card__header {
+  align-items: center;
+  gap: var(--mk-space-3);
+}
+
+.v1-patient-profile [hidden] {
+  display: none !important;
+}
+
+.v1-profile-edit-button {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.v1-profile-summary {
+  display: grid;
+  gap: var(--mk-space-4);
+  padding: var(--mk-space-4);
+}
+
+.v1-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--mk-space-3);
+  padding: var(--mk-space-4);
+  border: 1px solid var(--mk-border-color-brand);
+  border-radius: var(--mk-radius-lg);
+  background: linear-gradient(135deg, var(--mk-color-primary-50), var(--mk-color-accent-50));
+}
+
+.v1-profile-avatar {
+  display: inline-grid;
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: var(--mk-radius-pill);
+  color: var(--mk-text-on-brand);
+  background: var(--mk-gradient-brand);
+  box-shadow: var(--mk-shadow-sm);
+  font-weight: var(--mk-font-weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.v1-profile-identity strong,
+.v1-profile-identity span:not(.v1-profile-avatar) {
+  display: block;
+}
+
+.v1-profile-identity strong {
+  color: var(--mk-text-main);
+  font-size: var(--mk-font-size-lg);
+}
+
+.v1-profile-identity div > span {
+  margin-top: var(--mk-space-1);
+  color: var(--mk-text-muted);
+}
+
+.v1-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mk-space-3);
+  margin: 0;
+}
+
+.v1-profile-detail {
+  position: relative;
+  min-width: 0;
+  padding: var(--mk-space-3) var(--mk-space-3) var(--mk-space-3) var(--mk-space-4);
+  overflow: hidden;
+  border: 1px solid var(--mk-border-color);
+  border-radius: var(--mk-radius-md);
+  background: var(--mk-surface-card);
+}
+
+.v1-profile-detail::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--mk-color-primary-400);
+}
+
+.v1-profile-detail--email::before { background: var(--mk-color-accent-500); }
+.v1-profile-detail--address::before { background: var(--mk-color-success-text); }
+.v1-profile-detail--notes::before { background: var(--mk-color-warning-text); }
+
+.v1-profile-detail--address,
+.v1-profile-detail--notes {
+  grid-column: 1 / -1;
+}
+
+.v1-profile-detail dt {
+  color: var(--mk-text-muted);
+  font-size: var(--mk-font-size-xs);
+  font-weight: var(--mk-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.v1-profile-detail dd {
+  margin: var(--mk-space-1) 0 0;
+  overflow-wrap: anywhere;
+  color: var(--mk-text-main);
+  line-height: 1.5;
+}
+
+.v1-profile-queue-button {
+  width: 100%;
+}
+
+/* Paramètres : fiches de consultation avant ouverture de l'édition. */
+.v1-settings-page .v1-settings-grid > .v1-card {
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.v1-settings-page .v1-card__header {
+  align-items: center;
+  gap: var(--mk-space-3);
+}
+
+.v1-settings-edit-button {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.v1-settings-summary {
+  display: grid;
+  gap: var(--mk-space-4);
+  padding: var(--mk-space-5);
+}
+
+.v1-settings-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--mk-space-3);
+  padding: var(--mk-space-4);
+  border: 1px solid var(--mk-border-color-brand);
+  border-radius: var(--mk-radius-lg);
+  background: linear-gradient(135deg, var(--mk-color-primary-50), var(--mk-color-accent-50));
+}
+
+.v1-settings-identity--doctor {
+  background: linear-gradient(135deg, var(--mk-color-accent-50), var(--mk-color-success-soft));
+}
+
+.v1-settings-identity__icon {
+  display: inline-grid;
+  flex: 0 0 3.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: var(--mk-radius-lg);
+  color: var(--mk-text-on-brand);
+  background: var(--mk-gradient-brand);
+  box-shadow: var(--mk-shadow-sm);
+}
+
+.v1-settings-identity--doctor .v1-settings-identity__icon {
+  background: var(--mk-gradient-emerald);
+}
+
+.v1-settings-identity strong,
+.v1-settings-identity div > span {
+  display: block;
+}
+
+.v1-settings-identity strong {
+  color: var(--mk-text-main);
+  font-size: var(--mk-font-size-lg);
+}
+
+.v1-settings-identity div > span {
+  margin-top: var(--mk-space-1);
+  color: var(--mk-text-muted);
+}
+
+.v1-settings-timezone {
+  display: flex;
+  align-items: center;
+  gap: var(--mk-space-2);
+}
+
+.v1-settings-timezone img {
+  width: 1.75rem;
+  height: auto;
+  border: 1px solid var(--mk-border-color);
+  border-radius: var(--mk-radius-xs);
+}

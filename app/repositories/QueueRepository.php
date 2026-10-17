@@ -190,12 +190,98 @@ class QueueRepository
     | Récupérer ou créer la liste du jour
     |--------------------------------------------------------------------------
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Clôturer automatiquement les journées passées
+    |--------------------------------------------------------------------------
+    | Une liste d'un jour passé ne peut plus être active ni en pause.
+    | Elle est clôturée comme une fin de journée : les patients encore
+    | en attente sont annulés (motif end_of_day) et la journée est
+    | marquée terminée à 23:59:59 de son propre jour. Aucun utilisateur
+    | n'est enregistré : c'est MARKI qui clôture.
+    |--------------------------------------------------------------------------
+    */
+    public function closeExpiredQueues(int $clinicId, int $doctorId, string $today): int
+    {
+        // Appelée parfois depuis une transaction déjà ouverte : on s'y joint.
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
+
+        try {
+            $cancelSql = "
+                UPDATE queue_entries qe
+                INNER JOIN queues q
+                    ON q.id = qe.queue_id
+                SET
+                    qe.status_before_completion = qe.status,
+                    qe.canceled_by_completion = 1,
+                    qe.status = 'canceled',
+                    qe.canceled_at = TIMESTAMP(q.queue_date, '23:59:59'),
+                    qe.cancellation_reason = 'end_of_day',
+                    qe.done_at = NULL,
+                    qe.no_show_at = NULL
+                WHERE q.clinic_id = :clinic_id
+                  AND q.doctor_id = :doctor_id
+                  AND q.queue_date < :today
+                  AND q.day_status <> 'completed'
+                  AND qe.status IN ('waiting', 'called')
+            ";
+
+            $cancelStmt = $this->pdo->prepare($cancelSql);
+            $cancelStmt->execute([
+                ':clinic_id' => $clinicId,
+                ':doctor_id' => $doctorId,
+                ':today' => $today,
+            ]);
+
+            $queueSql = "
+                UPDATE queues
+                SET
+                    registration_status_before_completion = registration_status,
+                    day_status_before_completion = day_status,
+                    registration_status = 'closed',
+                    day_status = 'completed',
+                    status = 'archived',
+                    closed_at = COALESCE(closed_at, TIMESTAMP(queue_date, '23:59:59')),
+                    completed_at = TIMESTAMP(queue_date, '23:59:59'),
+                    updated_at = NOW()
+                WHERE clinic_id = :clinic_id
+                  AND doctor_id = :doctor_id
+                  AND queue_date < :today
+                  AND day_status <> 'completed'
+            ";
+
+            $queueStmt = $this->pdo->prepare($queueSql);
+            $queueStmt->execute([
+                ':clinic_id' => $clinicId,
+                ':doctor_id' => $doctorId,
+                ':today' => $today,
+            ]);
+
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
+
+            return $queueStmt->rowCount();
+        } catch (Throwable $exception) {
+            if ($ownsTransaction) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
     public function getOrCreateTodayQueue(
         int $clinicId,
         int $doctorId,
         int $userId,
         string $queueDate
     ): array {
+        // Les journées précédentes restées ouvertes sont clôturées d'abord.
+        $this->closeExpiredQueues($clinicId, $doctorId, $queueDate);
+
         $queue = $this->findTodayQueue($doctorId, $queueDate);
 
         if ($queue !== null) {

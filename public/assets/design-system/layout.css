@@ -17,6 +17,11 @@
   z-index: var(--mk-z-sticky);
   background: var(--mk-surface-card);
   border-color: var(--mk-border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  gap: 1rem;
 }
 
 /* Filet de marque sous l'en-tete : dégradé signature du logo */
@@ -233,7 +238,10 @@ body.is-sidebar-collapsed .sidebar .sidebar__toggle-icon,
 .main-content {
   flex: 1;
   min-width: 0;
-  padding: var(--mk-space-5) var(--mk-space-6);
+  /* Place de la barre de défilement réservée : la page ne se décale
+     plus quand une section s'ouvre et que le contenu s'allonge. */
+  scrollbar-gutter: stable;
+  padding: var(--mk-space-5) var(--mk-space-6) clamp(2rem, 4vh, 3.5rem);
   background: var(--mk-surface-page);
   overflow-y: auto;
 }

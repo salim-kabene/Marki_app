@@ -41,18 +41,18 @@ $basePath = rtrim((string) $context['config']['app']['base_path'], '/');
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260829-brand1">
-    <link rel="stylesheet" href="assets/css/v1-tabs.css?v=20260829-fix6">
-    <link rel="stylesheet" href="assets/css/session-ui.css?v=20260829-fix6">
-    <link rel="stylesheet" href="assets/css/password-toggle.css?v=20260829-fix6">
-    <link rel="stylesheet" href="assets/css/public-registration-admin.css?v=20260829-fix6">
-    <link rel="stylesheet" href="assets/css/desktop-density.css?v=20260829-fix6">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261017-header2">
+    <link rel="stylesheet" href="assets/css/v1-tabs.css?v=20261017-header2">
+    <link rel="stylesheet" href="assets/css/session-ui.css?v=20261017-header2">
+    <link rel="stylesheet" href="assets/css/password-toggle.css?v=20261017-header2">
+    <link rel="stylesheet" href="assets/css/public-registration-admin.css?v=20261017-header2">
+    <link rel="stylesheet" href="assets/css/desktop-density.css?v=20261017-header2">
 
-    <script src="assets/js/auth-client.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/phone-input.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/password-toggle.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/algeria-locations.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/app.js?v=20260829-fix6" defer></script>
+    <script src="assets/js/auth-client.js?v=20261017-header2" defer></script>
+    <script src="assets/js/phone-input.js?v=20261017-header2" defer></script>
+    <script src="assets/js/password-toggle.js?v=20261017-header2" defer></script>
+    <script src="assets/js/algeria-locations.js?v=20261017-header2" defer></script>
+    <script src="assets/js/app.js?v=20261017-header2" defer></script>
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
         integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
@@ -60,12 +60,14 @@ $basePath = rtrim((string) $context['config']['app']['base_path'], '/');
         referrerpolicy="no-referrer"
         defer
     ></script>
-    <script src="assets/js/v1-tabs.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/public-registration-admin.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/team.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/header.js?v=20260829-fix6" defer></script>
-    <script src="assets/js/marki-motion.js?v=20260829-fix6" defer></script>
-    <link rel="stylesheet" href="assets/design-system/marki-theme.css?v=20260829-fix6">
+    <script src="assets/js/v1-tabs.js?v=20261017-header2" defer></script>
+    <script src="assets/js/public-registration-admin.js?v=20261017-header2" defer></script>
+    <script src="assets/js/team.js?v=20261017-header2" defer></script>
+    <script src="assets/js/header.js?v=20261017-header2" defer></script>
+    <script src="assets/js/marki-motion.js?v=20261017-header2" defer></script>
+    <script src="assets/js/help-tips.js?v=20261017-header2" defer></script>
+    <script src="assets/js/marki-datepicker.js?v=20261017-header2" defer></script>
+    <link rel="stylesheet" href="assets/design-system/marki-theme.css?v=20261017-header2">
 </head>
 
 <body>
@@ -89,6 +91,7 @@ $basePath = rtrim((string) $context['config']['app']['base_path'], '/');
                                 <?php foreach ($doctors as $availableDoctor): ?>
                                     <option
                                         value="<?= (int) $availableDoctor['id'] ?>"
+                                        data-specialty="<?= e($availableDoctor['specialty'] ?: 'Médecin') ?>"
                                         <?= (int) $availableDoctor['id'] === (int) $context['doctor_id'] ? 'selected' : '' ?>
                                     >
                                         <?= e($availableDoctor['display_name']) ?>
@@ -102,21 +105,48 @@ $basePath = rtrim((string) $context['config']['app']['base_path'], '/');
 
             <div class="header__right">
                 <div class="header__datetime" aria-live="polite">
+                    <svg class="mk-icon mk-icon--sm header__datetime-icon" aria-hidden="true"><use href="#mk-clock"></use></svg>
                     <p class="date" id="header-current-date">—</p>
                     <p class="time" id="header-current-time">—</p>
                 </div>
 
                 <details class="account-menu">
                     <summary>
-                        <span class="account-menu__name"><?= e($context['user']['full_name']) ?></span>
-                        <span class="account-menu__role"><?= e($context['role_label']) ?></span>
+                        <?php
+                        $accountInitials = '';
+                        foreach (array_slice(preg_split('/\s+/u', trim((string) $context['user']['full_name'])) ?: [], 0, 3) as $namePart) {
+                            if ($namePart !== '' && !preg_match('/^dr\.?$/iu', $namePart)) {
+                                $accountInitials .= mb_strtoupper(mb_substr($namePart, 0, 1));
+                            }
+                        }
+                        ?>
+                        <span class="account-menu__avatar" aria-hidden="true"><?= e(mb_substr($accountInitials, 0, 2) ?: '•') ?></span>
+                        <span class="account-menu__text">
+                            <span class="account-menu__name"><?= e($context['user']['full_name']) ?></span>
+                            <span class="account-menu__role"><?= e($context['role_label']) ?></span>
+                        </span>
+                        <svg class="mk-icon mk-icon--sm account-menu__chevron" aria-hidden="true"><use href="#mk-chevron-down"></use></svg>
                     </summary>
                     <div class="account-menu__panel">
-                        <p><?= e($context['clinic']['name']) ?></p>
-                        <a href="change-password.php">Changer le mot de passe</a>
+                        <div class="account-menu__identity">
+                            <span class="account-menu__eyebrow">Connecté en tant que</span>
+                            <strong><?= e($context['user']['full_name']) ?></strong>
+                            <span><?= e($context['role_label']) ?></span>
+                        </div>
+                        <p class="account-menu__clinic">
+                            <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-building"></use></svg>
+                            <span><?= e($context['clinic']['name']) ?></span>
+                        </p>
+                        <a href="change-password.php" class="account-menu__item">
+                            <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-lock"></use></svg>
+                            <span>Changer le mot de passe</span>
+                        </a>
                         <form action="api/auth_logout.php" method="post">
                             <input type="hidden" name="csrf_token" value="<?= e($context['csrf_token']) ?>">
-                            <button type="submit">Se déconnecter</button>
+                            <button type="submit" class="account-menu__item account-menu__item--danger">
+                                <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-log-out"></use></svg>
+                                <span>Se déconnecter</span>
+                            </button>
                         </form>
                     </div>
                 </details>
@@ -185,6 +215,60 @@ $basePath = rtrim((string) $context['config']['app']['base_path'], '/');
                 <!-- Les pages internes sont chargées ici. -->
             </main>
         </div>
+
+        <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navigation mobile">
+            <ul class="mobile-bottom-nav__list">
+                <?php if ($capabilities['queue.view'] ?? false): ?>
+                    <li class="mobile-bottom-nav__item active" data-page="dashboard" role="button" tabindex="0">
+                        <span class="mobile-bottom-nav__icon">
+                            <svg class="mk-icon" aria-hidden="true"><use href="#mk-queue"></use></svg>
+                        </span>
+                        <span class="mobile-bottom-nav__label">Liste du jour</span>
+                    </li>
+                <?php endif; ?>
+
+                <?php if ($capabilities['patients.view'] ?? false): ?>
+                    <li class="mobile-bottom-nav__item" data-page="patients" role="button" tabindex="0">
+                        <span class="mobile-bottom-nav__icon">
+                            <svg class="mk-icon" aria-hidden="true"><use href="#mk-patients"></use></svg>
+                        </span>
+                        <span class="mobile-bottom-nav__label">Patients</span>
+                    </li>
+                <?php endif; ?>
+
+                <?php if ($capabilities['queue.manage'] ?? false): ?>
+                    <li class="mobile-bottom-nav__fab-slot">
+                        <button
+                            type="button"
+                            class="mobile-bottom-nav__fab"
+                            id="mobileFabAddPatient"
+                            aria-label="Ajouter un patient"
+                            title="Nouveau patient"
+                        >
+                            <svg class="mk-icon" aria-hidden="true"><use href="#mk-plus"></use></svg>
+                        </button>
+                    </li>
+                <?php endif; ?>
+
+                <?php if ($capabilities['lists.view'] ?? false): ?>
+                    <li class="mobile-bottom-nav__item" data-page="lists" role="button" tabindex="0">
+                        <span class="mobile-bottom-nav__icon">
+                            <svg class="mk-icon" aria-hidden="true"><use href="#mk-archive"></use></svg>
+                        </span>
+                        <span class="mobile-bottom-nav__label">Listes</span>
+                    </li>
+                <?php endif; ?>
+
+                <?php if ($capabilities['settings.view'] ?? false): ?>
+                    <li class="mobile-bottom-nav__item" data-page="settings" role="button" tabindex="0">
+                        <span class="mobile-bottom-nav__icon">
+                            <svg class="mk-icon" aria-hidden="true"><use href="#mk-settings"></use></svg>
+                        </span>
+                        <span class="mobile-bottom-nav__label">Paramètres</span>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
     <div
         class="marki-toast-container"

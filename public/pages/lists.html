@@ -7,19 +7,25 @@
     </div>
   </header>
 
-  <form id="queues-history-filters" class="v1-toolbar v1-toolbar--filters">
-    <label class="v1-field v1-field--compact">
-      <span>Du</span>
-      <input type="date" id="queues-date-from" name="date_from">
-    </label>
+  <form id="queues-history-filters" class="v1-toolbar v1-toolbar--filters v1-filter-bar">
+    <!-- Période : les deux dates forment un seul contrôle -->
+    <div class="v1-filter-bar__group v1-filter-bar__group--period">
+      <span class="v1-filter-bar__label" id="queues-period-label">Période</span>
+      <div class="v1-date-range" role="group" aria-labelledby="queues-period-label">
+        <label class="v1-date-range__field">
+          <span class="v1-sr-only">Du</span>
+          <input type="date" id="queues-date-from" name="date_from" aria-label="Du">
+        </label>
+        <svg class="mk-icon mk-icon--sm v1-date-range__arrow" aria-hidden="true"><use href="#mk-arrow-right"></use></svg>
+        <label class="v1-date-range__field">
+          <span class="v1-sr-only">Au</span>
+          <input type="date" id="queues-date-to" name="date_to" aria-label="Au">
+        </label>
+      </div>
+    </div>
 
-    <label class="v1-field v1-field--compact">
-      <span>Au</span>
-      <input type="date" id="queues-date-to" name="date_to">
-    </label>
-
-    <label class="v1-field v1-field--compact">
-      <span>État de la journée</span>
+    <label class="v1-filter-bar__group">
+      <span class="v1-filter-bar__label">État de la journée</span>
       <select id="queues-day-status" name="day_status">
         <option value="all">Tous les états</option>
         <option value="active">Active</option>
@@ -28,8 +34,8 @@
       </select>
     </label>
 
-    <label class="v1-field v1-field--compact">
-      <span>Affichage</span>
+    <label class="v1-filter-bar__group v1-filter-bar__group--size">
+      <span class="v1-filter-bar__label">Affichage</span>
       <select id="queues-page-size" name="per_page">
         <option value="12">12</option>
         <option value="24">24</option>
@@ -37,16 +43,23 @@
       </select>
     </label>
 
-    <div class="v1-toolbar__actions">
-      <button type="button" class="v1-button v1-button--ghost" id="queues-reset-filters">Réinitialiser</button>
-      <button type="submit" class="v1-button v1-button--primary">Appliquer</button>
+    <div class="v1-toolbar__actions v1-filter-bar__actions">
+      <button type="button" class="v1-button v1-button--ghost" id="queues-reset-filters">
+        <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-refresh-cw"></use></svg>
+        <span>Réinitialiser</span>
+      </button>
+      <button type="submit" class="v1-button v1-button--primary">
+        <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-filter"></use></svg>
+        <span>Appliquer</span>
+      </button>
     </div>
   </form>
 
   <div id="queues-history-message" class="v1-message" role="status" aria-live="polite"></div>
 
   <div class="v1-split-layout v1-split-layout--history">
-    <section class="v1-card v1-card--table" aria-labelledby="queues-history-title">
+    <!-- VUE TABLEAU / LISTE -->
+    <section class="v1-card v1-card--table" id="queues-list-view-section" aria-labelledby="queues-history-title">
       <div class="v1-card__header">
         <div>
           <h3 id="queues-history-title">Journées</h3>
@@ -54,26 +67,12 @@
         </div>
       </div>
 
-      <div class="v1-table-wrap">
-        <table class="v1-table v1-table--history">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>État</th>
-              <th>Total</th>
-              <th>Attente</th>
-              <th>Terminés</th>
-              <th>Absents</th>
-              <th>Annulés</th>
-              <th class="v1-table__action-heading">Détail</th>
-            </tr>
-          </thead>
-          <tbody id="queues-history-table-body">
-            <tr>
-              <td colspan="8" class="v1-empty-cell">Chargement des listes…</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Bilan de la période affichée -->
+      <div id="queues-period-stats" class="v1-period-stats" hidden></div>
+
+      <!-- Une carte par journée : compteurs et répartition des passages -->
+      <div id="queues-history-table-body" class="v1-day-list" role="list">
+        <p class="v1-empty-cell">Chargement des listes…</p>
       </div>
 
       <footer class="v1-card__footer">
@@ -95,6 +94,7 @@
       </div>
 
       <div id="queue-detail-content" hidden>
+        <div id="queue-detail-stats" class="v1-day-stats v1-day-stats--detail"></div>
         <dl id="queue-detail-summary" class="v1-definition-grid"></dl>
 
         <div class="v1-section-heading v1-section-heading--spaced">

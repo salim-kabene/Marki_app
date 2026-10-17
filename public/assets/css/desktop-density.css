@@ -119,7 +119,7 @@
   .main-content {
     gap: 0.7rem;
     min-height: calc(100vh - 70px);
-    padding: 0.85rem;
+    padding: 0.85rem 0.85rem 2.25rem;
   }
 
   .content-wrapper {
@@ -229,28 +229,23 @@
   }
 
   .status-counters {
-    gap: 0.6rem;
+    gap: 0.45rem;
+    margin-bottom: 0.65rem;
   }
 
   .counter {
-    min-height: 72px;
-    padding: 0.65rem 0.8rem;
-  }
-
-  .counter > img,
-  .counter > .counter__fallback-icon {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    flex-basis: 32px;
+    min-height: 42px;
+    padding: 0.3rem 0.75rem;
   }
 
   .counter__info span {
-    font-size: 0.76rem;
+    font-size: 0.78rem;
+    font-weight: 750;
   }
 
   .counter__info strong {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+    font-weight: 800;
   }
 
   .v1-page {
@@ -354,7 +349,7 @@
 
   .main-content {
     min-height: calc(100vh - 64px);
-    padding: 0.7rem;
+    padding: 0.7rem 0.7rem 2rem;
   }
 
   .waiting-list {
@@ -388,7 +383,7 @@
   .main-content {
     min-width: 0;
     min-height: auto;
-    padding: 0.85rem;
+    padding: 0.85rem 0.85rem 2rem;
     overflow: visible;
   }
 
@@ -425,20 +420,22 @@
   .header {
     position: relative;
     z-index: 20;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     padding: 0.7rem 0.8rem;
   }
 
   .header__profile {
     min-width: 0;
-    flex: 1 1 250px;
+    flex: 1 1 auto;
   }
 
   .header__profile .avatar {
     width: 40px;
     height: 40px;
+    flex: none;
   }
 
   .header__profile .profile-info {
@@ -454,7 +451,7 @@
 
   .header__right {
     width: auto;
-    flex: 1 1 300px;
+    flex: 0 0 auto;
     justify-content: flex-end;
     gap: 0.75rem;
   }
@@ -510,7 +507,7 @@
 
   .main-content {
     width: 100%;
-    padding: 0.7rem;
+    padding: 0.7rem 0.7rem 1.85rem;
   }
 
   .day-list-page__top {
@@ -649,7 +646,7 @@
   }
 
   .main-content {
-    padding: 0.55rem;
+    padding: 0.55rem 0.55rem 1.75rem;
   }
 
   .day-list-page__heading h2 {
@@ -689,11 +686,13 @@
   }
 
   .status-counters {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
   }
 
   .counter {
-    min-height: 66px;
+    min-height: 38px;
+    padding: 0.35rem 0.55rem;
   }
 
   .v1-page__header h1,

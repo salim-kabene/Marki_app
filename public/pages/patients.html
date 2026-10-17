@@ -18,12 +18,21 @@
       >
     </label>
 
+    <label class="v1-select-field v1-select-field--sort" for="patients-sort">
+      <span>Trier par</span>
+      <select id="patients-sort">
+        <option value="recent">Dernier passage</option>
+        <option value="name">Ordre alphabétique</option>
+      </select>
+    </label>
+
     <label class="v1-select-field" for="patients-page-size">
       <span>Affichage</span>
       <select id="patients-page-size">
-        <option value="12">12</option>
-        <option value="24">24</option>
-        <option value="48">48</option>
+        <option value="15">15</option>
+        <option value="30">30</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
       </select>
     </label>
   </div>
@@ -71,6 +80,10 @@
           <p class="v1-page__eyebrow">Fiche administrative</p>
           <h3 id="patient-profile-title">Sélectionnez un patient</h3>
         </div>
+        <button type="button" class="v1-button v1-button--secondary v1-profile-edit-button" id="patient-profile-edit-button" hidden>
+          <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-pencil"></use></svg>
+          <span>Modifier</span>
+        </button>
       </div>
 
       <div id="patient-profile-empty" class="v1-empty-panel">
@@ -78,52 +91,39 @@
       </div>
 
       <div id="patient-profile-content" hidden>
-        <form id="patient-profile-form" class="v1-form" novalidate>
-          <input type="hidden" id="patient-profile-id" name="patient_id">
-
-          <div class="v1-form__grid">
-            <label class="v1-field v1-field--wide">
-              <span>Nom complet <strong class="required-mark" aria-hidden="true">*</strong></span>
-              <input type="text" id="patient-profile-full-name" name="full_name" autocomplete="name" required>
-            </label>
-
-            <label class="v1-field">
-              <span>Téléphone <strong class="required-mark" aria-hidden="true">*</strong></span>
-              <input type="tel" id="patient-profile-phone" name="phone" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="0550 80 30 90" data-dz-mobile required>
-            </label>
-
-            <label class="v1-field">
-              <span>Date de naissance</span>
-              <input type="date" id="patient-profile-birth-date" name="birth_date">
-            </label>
-
-            <label class="v1-field v1-field--wide">
-              <span>Courriel</span>
-              <input type="email" id="patient-profile-email" name="email" autocomplete="email">
-            </label>
-
-            <label class="v1-field v1-field--wide">
-              <span>Adresse</span>
-              <input type="text" id="patient-profile-address" name="address" autocomplete="street-address">
-            </label>
-
-            <label class="v1-field v1-field--wide">
-              <span>Notes administratives du cabinet</span>
-              <textarea id="patient-profile-notes" name="notes_non_medical" rows="4"></textarea>
-            </label>
+        <section class="v1-profile-summary" aria-label="Informations du patient">
+          <div class="v1-profile-identity">
+            <span class="v1-profile-avatar" id="patient-profile-avatar" aria-hidden="true">—</span>
+            <div>
+              <strong id="patient-view-full-name">—</strong>
+              <span id="patient-view-phone">—</span>
+            </div>
           </div>
 
-          <div id="patient-profile-form-message" class="v1-message" role="status" aria-live="polite"></div>
+          <dl class="v1-profile-details">
+            <div class="v1-profile-detail v1-profile-detail--birth">
+              <dt>Date de naissance</dt>
+              <dd id="patient-view-birth-date">Non renseignée</dd>
+            </div>
+            <div class="v1-profile-detail v1-profile-detail--email">
+              <dt>Courriel</dt>
+              <dd id="patient-view-email">Non renseigné</dd>
+            </div>
+            <div class="v1-profile-detail v1-profile-detail--address">
+              <dt>Adresse</dt>
+              <dd id="patient-view-address">Non renseignée</dd>
+            </div>
+            <div class="v1-profile-detail v1-profile-detail--notes">
+              <dt>Notes administratives</dt>
+              <dd id="patient-view-notes">Aucune note</dd>
+            </div>
+          </dl>
 
-          <div class="v1-form__actions">
-            <button type="button" class="v1-button v1-button--secondary" id="patient-add-to-today-button">
-              Ajouter à la liste du jour
-            </button>
-            <button type="submit" class="v1-button v1-button--primary" id="patient-profile-save-button">
-              Enregistrer les modifications
-            </button>
-          </div>
-        </form>
+          <button type="button" class="v1-button v1-button--secondary v1-profile-queue-button" id="patient-add-to-today-button">
+            <svg class="mk-icon mk-icon--sm" aria-hidden="true"><use href="#mk-user-plus"></use></svg>
+            <span>Ajouter à la liste du jour</span>
+          </button>
+        </section>
 
         <section class="v1-history-section" aria-labelledby="patient-visits-title">
           <div class="v1-section-heading">
@@ -132,15 +132,68 @@
           </div>
           <div id="patient-visits-list" class="v1-timeline"></div>
         </section>
-
-        <section class="v1-history-section" aria-labelledby="patient-queues-title">
-          <div class="v1-section-heading">
-            <h4 id="patient-queues-title">Passages dans les listes</h4>
-            <span id="patient-queues-count" class="v1-soft-badge">0</span>
-          </div>
-          <div id="patient-queues-list" class="v1-timeline"></div>
-        </section>
       </div>
     </aside>
+  </div>
+
+  <div class="v1-profile-modal" id="patient-profile-edit-modal" hidden aria-hidden="true">
+    <button type="button" class="v1-profile-modal__backdrop" data-close-patient-profile-modal aria-label="Fermer la fenêtre de modification"></button>
+    <section class="v1-profile-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="patient-profile-edit-title">
+      <header class="v1-profile-modal__header">
+        <div>
+          <p class="v1-page__eyebrow">Fiche administrative</p>
+          <h3 id="patient-profile-edit-title">Modifier le patient</h3>
+          <p>Corrigez uniquement les informations administratives nécessaires.</p>
+        </div>
+        <button type="button" class="v1-profile-modal__close" data-close-patient-profile-modal aria-label="Fermer">
+          <svg class="mk-icon" aria-hidden="true"><use href="#mk-close"></use></svg>
+        </button>
+      </header>
+
+      <form id="patient-profile-form" class="v1-form v1-profile-modal__form" novalidate>
+        <input type="hidden" id="patient-profile-id" name="patient_id">
+
+        <div class="v1-form__grid">
+          <label class="v1-field v1-field--wide">
+            <span>Nom complet <strong class="required-mark" aria-hidden="true">*</strong></span>
+            <input type="text" id="patient-profile-full-name" name="full_name" autocomplete="name" required>
+          </label>
+
+          <label class="v1-field">
+            <span>Téléphone <strong class="required-mark" aria-hidden="true">*</strong></span>
+            <input type="tel" id="patient-profile-phone" name="phone" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="0550 80 30 90" data-dz-mobile required>
+          </label>
+
+          <label class="v1-field">
+            <span>Date de naissance</span>
+            <input type="text" id="patient-profile-birth-date" name="birth_date" inputmode="numeric" maxlength="10" placeholder="JJ/MM/AAAA" autocomplete="bday">
+          </label>
+
+          <label class="v1-field v1-field--wide">
+            <span>Courriel</span>
+            <input type="email" id="patient-profile-email" name="email" autocomplete="email">
+          </label>
+
+          <label class="v1-field v1-field--wide">
+            <span>Adresse</span>
+            <input type="text" id="patient-profile-address" name="address" autocomplete="street-address">
+          </label>
+
+          <label class="v1-field v1-field--wide">
+            <span>Notes administratives du cabinet</span>
+            <textarea id="patient-profile-notes" name="notes_non_medical" rows="4"></textarea>
+          </label>
+        </div>
+
+        <div id="patient-profile-form-message" class="v1-message" role="status" aria-live="polite"></div>
+
+        <div class="v1-form__actions v1-profile-modal__actions">
+          <button type="button" class="v1-button v1-button--ghost" data-close-patient-profile-modal>Annuler</button>
+          <button type="submit" class="v1-button v1-button--primary" id="patient-profile-save-button">
+            Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </section>
   </div>
 </section>

@@ -19,12 +19,14 @@ final class PatientDirectoryRepository
         int $doctorId,
         string $search,
         int $page,
-        int $perPage
+        int $perPage,
+        string $sort = 'recent'
     ): array {
         $page = max(1, $page);
-        $perPage = in_array($perPage, [12, 24, 48], true)
+        // Nombre de patients par page proposé dans « Mes Patients ».
+        $perPage = in_array($perPage, [15, 30, 50, 100], true)
             ? $perPage
-            : 12;
+            : 15;
         $offset = ($page - 1) * $perPage;
         $search = trim($search);
 
@@ -90,6 +92,15 @@ final class PatientDirectoryRepository
 
         $whereSql = implode("\n AND ", $where);
 
+        /*
+        |----------------------------------------------------------------------
+        | Tri : liste fermée de valeurs, jamais de SQL venu du client.
+        |----------------------------------------------------------------------
+        */
+        $orderSql = $sort === 'name'
+            ? 'p.full_name ASC, p.id DESC'
+            : 'COALESCE(last_visit_at, p.updated_at, p.created_at) DESC, p.full_name ASC, p.id DESC';
+
         $countSql = "
             SELECT COUNT(*) AS total
             FROM patients p
@@ -138,10 +149,7 @@ final class PatientDirectoryRepository
                 ) AS last_queue_status
             FROM patients p
             WHERE {$whereSql}
-            ORDER BY
-                COALESCE(last_visit_at, p.updated_at, p.created_at) DESC,
-                p.full_name ASC,
-                p.id DESC
+            ORDER BY {$orderSql}
             LIMIT :limit_rows OFFSET :offset_rows
         ";
 
@@ -241,11 +249,6 @@ final class PatientDirectoryRepository
             $patient['phone'] !== null ? (string) $patient['phone'] : null
         );
         $patient['recent_visits'] = $this->findRecentVisits(
-            $patientId,
-            $clinicId,
-            $doctorId
-        );
-        $patient['recent_entries'] = $this->findRecentEntries(
             $patientId,
             $clinicId,
             $doctorId
@@ -430,7 +433,6 @@ final class PatientDirectoryRepository
             ORDER BY
                 COALESCE(v.ended_at, v.started_at, v.created_at) DESC,
                 v.id DESC
-            LIMIT 20
         ";
 
         $stmt = $this->pdo->prepare($sql);
@@ -451,57 +453,6 @@ final class PatientDirectoryRepository
                     'queue_entry_id' => $row['queue_entry_id'] !== null
                         ? (int) $row['queue_entry_id']
                         : null,
-                ];
-            },
-            $stmt->fetchAll()
-        );
-    }
-
-    private function findRecentEntries(
-        int $patientId,
-        int $clinicId,
-        int $doctorId
-    ): array {
-        $sql = "
-            SELECT
-                qe.id,
-                qe.status,
-                qe.position_number,
-                qe.created_at,
-                qe.done_at,
-                qe.no_show_at,
-                qe.canceled_at,
-                q.queue_date
-            FROM queue_entries qe
-            INNER JOIN queues q
-                ON q.id = qe.queue_id
-            WHERE qe.patient_id = :patient_id
-              AND qe.clinic_id = :clinic_id
-              AND q.doctor_id = :doctor_id
-            ORDER BY q.queue_date DESC, qe.id DESC
-            LIMIT 20
-        ";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([
-            ':patient_id' => $patientId,
-            ':clinic_id' => $clinicId,
-            ':doctor_id' => $doctorId,
-        ]);
-
-        return array_map(
-            static function (array $row): array {
-                return [
-                    'id' => (int) $row['id'],
-                    'status' => $row['status'],
-                    'position_number' => $row['position_number'] !== null
-                        ? (int) $row['position_number']
-                        : null,
-                    'queue_date' => $row['queue_date'],
-                    'created_at' => $row['created_at'],
-                    'done_at' => $row['done_at'],
-                    'no_show_at' => $row['no_show_at'],
-                    'canceled_at' => $row['canceled_at'],
                 ];
             },
             $stmt->fetchAll()

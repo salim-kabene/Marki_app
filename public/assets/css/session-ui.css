@@ -79,9 +79,9 @@
 }
 
 @media (max-width: 900px) {
-  .header { align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-  .header__right { width: 100%; justify-content: space-between; }
-  .account-menu { min-width: 160px; }
+  .header { align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 10px; }
+  .header__right { width: auto; justify-content: flex-end; }
+  .account-menu { min-width: auto; }
 }
 
 .team-card { margin-top: 24px; }

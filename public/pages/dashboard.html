@@ -200,16 +200,14 @@
                                 </div>
                             </div>
 
-                            <div class="patient-detail-card patient-detail-card--notes">
+                            <div class="patient-detail-card patient-detail-card--notes" id="patient-details-notes-card" hidden>
                                 <div class="patient-detail-card__header">
                                     <div class="patient-detail-card__icon-box patient-detail-card__icon-box--amber">
                                         <svg class="mk-icon" aria-hidden="true"><use href="#mk-pencil"></use></svg>
                                     </div>
-                                    <span class="label">Notes cabinet</span>
+                                    <span class="label">Note cabinet</span>
                                 </div>
-                                <p class="value patient-notes-text" id="patient-details-notes">
-                                    Aucune note disponible.
-                                </p>
+                                <p class="value patient-notes-text" id="patient-details-notes"></p>
                             </div>
 
                             <div class="patient-detail-card patient-detail-card--history">
@@ -245,6 +243,49 @@
 
         <!-- Liste, recherche, pagination et compteurs -->
         <div class="day-list-main">
+            <!-- Compteurs de statut ultra-compacts (en haut) -->
+            <div class="status-counters">
+                <div class="counter counter--waiting waiting">
+                    <div class="counter__icon-box">
+                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-clock"></use></svg>
+                    </div>
+                    <div class="counter__body counter__info">
+                        <span class="counter__label">EN ATTENTE</span>
+                        <strong class="counter__value" id="counter-waiting">0</strong>
+                    </div>
+                </div>
+
+                <div class="counter counter--absent absent">
+                    <div class="counter__icon-box">
+                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-user-x"></use></svg>
+                    </div>
+                    <div class="counter__body counter__info">
+                        <span class="counter__label">ABSENT</span>
+                        <strong class="counter__value" id="counter-absent">0</strong>
+                    </div>
+                </div>
+
+                <div class="counter counter--done done">
+                    <div class="counter__icon-box">
+                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-check-circle"></use></svg>
+                    </div>
+                    <div class="counter__body counter__info">
+                        <span class="counter__label">TERMINÉ</span>
+                        <strong class="counter__value" id="counter-done">0</strong>
+                    </div>
+                </div>
+
+                <div class="counter counter--canceled canceled">
+                    <div class="counter__icon-box">
+                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-slash-circle"></use></svg>
+                    </div>
+                    <div class="counter__body counter__info">
+                        <span class="counter__label">ANNULÉ</span>
+                        <strong class="counter__value" id="counter-canceled">0</strong>
+                    </div>
+                </div>
+            </div>
+
             <div class="day-list-toolbar">
                 <div class="search-box">
                     <svg class="mk-icon" aria-hidden="true"><use href="#mk-search"></use></svg>
@@ -252,7 +293,7 @@
                     <input
                         type="search"
                         id="day-list-search"
-                        placeholder="Rechercher par nom ou téléphone..."
+                        placeholder="Rechercher un nom ou téléphone…"
                         autocomplete="off"
                         aria-label="Rechercher un patient dans la liste du jour"
                     >
@@ -294,12 +335,12 @@
 
                     <thead>
                         <tr>
-                            <th>N° D’ARRIVÉE</th>
-                            <th>PATIENT</th>
-                            <th>TÉLÉPHONE</th>
-                            <th>HEURE</th>
-                            <th>STATUT</th>
-                            <th>ACTIONS</th>
+                            <th class="table-header-num">N°</th>
+                            <th class="table-header-patient">PATIENT</th>
+                            <th class="table-header-phone col-phone-header">TÉLÉPHONE</th>
+                            <th class="table-header-time">HEURE</th>
+                            <th class="table-header-status">STATUT</th>
+                            <th class="table-header-actions">ACTIONS</th>
                         </tr>
                     </thead>
 
@@ -367,108 +408,6 @@
                         id="day-list-pagination"
                         aria-label="Pagination de la liste du jour"
                     ></nav>
-                </div>
-            </div>
-
-            <div class="status-counters">
-                <div class="counter counter--waiting waiting">
-                    <div class="counter__icon-box">
-                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-clock"></use></svg>
-                    </div>
-                    <div class="counter__body counter__info">
-                        <div class="counter__top-row">
-                            <span class="counter__label">EN ATTENTE</span>
-                            <button type="button" class="counter__dots" aria-label="Options"><svg class="mk-icon mk-icon--xs" aria-hidden="true"><use href="#mk-more-vertical"></use></svg></button>
-                        </div>
-                        <strong class="counter__value" id="counter-waiting">0</strong>
-                    </div>
-                    <div class="counter__sparkline counter__sparkline--waiting" aria-hidden="true">
-                        <svg viewBox="0 0 100 28" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="spark-grad-waiting" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/>
-                                    <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,22 C20,24 35,16 55,20 C75,24 85,10 100,8 L100,28 L0,28 Z" fill="url(#spark-grad-waiting)"/>
-                            <path d="M0,22 C20,24 35,16 55,20 C75,24 85,10 100,8" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="counter counter--absent absent">
-                    <div class="counter__icon-box">
-                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-user-x"></use></svg>
-                    </div>
-                    <div class="counter__body counter__info">
-                        <div class="counter__top-row">
-                            <span class="counter__label">ABSENT</span>
-                            <button type="button" class="counter__dots" aria-label="Options"><svg class="mk-icon mk-icon--xs" aria-hidden="true"><use href="#mk-more-vertical"></use></svg></button>
-                        </div>
-                        <strong class="counter__value" id="counter-absent">0</strong>
-                    </div>
-                    <div class="counter__sparkline counter__sparkline--absent" aria-hidden="true">
-                        <svg viewBox="0 0 100 28" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="spark-grad-absent" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/>
-                                    <stop offset="100%" stop-color="#f97316" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,24 C20,24 35,22 55,14 C75,8 85,18 100,10 L100,28 L0,28 Z" fill="url(#spark-grad-absent)"/>
-                            <path d="M0,24 C20,24 35,22 55,14 C75,8 85,18 100,10" fill="none" stroke="#f97316" stroke-width="2.2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="counter counter--done done">
-                    <div class="counter__icon-box">
-                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-check-circle"></use></svg>
-                    </div>
-                    <div class="counter__body counter__info">
-                        <div class="counter__top-row">
-                            <span class="counter__label">TERMINÉ</span>
-                            <button type="button" class="counter__dots" aria-label="Options"><svg class="mk-icon mk-icon--xs" aria-hidden="true"><use href="#mk-more-vertical"></use></svg></button>
-                        </div>
-                        <strong class="counter__value" id="counter-done">0</strong>
-                    </div>
-                    <div class="counter__sparkline counter__sparkline--done" aria-hidden="true">
-                        <svg viewBox="0 0 100 28" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="spark-grad-done" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
-                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,24 C25,24 40,16 60,18 C75,20 85,8 100,12 L100,28 L0,28 Z" fill="url(#spark-grad-done)"/>
-                            <path d="M0,24 C25,24 40,16 60,18 C75,20 85,8 100,12" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="counter counter--canceled canceled">
-                    <div class="counter__icon-box">
-                        <svg class="mk-icon" aria-hidden="true"><use href="#mk-slash-circle"></use></svg>
-                    </div>
-                    <div class="counter__body counter__info">
-                        <div class="counter__top-row">
-                            <span class="counter__label">ANNULÉ</span>
-                            <button type="button" class="counter__dots" aria-label="Options"><svg class="mk-icon mk-icon--xs" aria-hidden="true"><use href="#mk-more-vertical"></use></svg></button>
-                        </div>
-                        <strong class="counter__value" id="counter-canceled">0</strong>
-                    </div>
-                    <div class="counter__sparkline counter__sparkline--canceled" aria-hidden="true">
-                        <svg viewBox="0 0 100 28" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="spark-grad-canceled" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.3"/>
-                                    <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,22 C20,24 35,26 55,16 C75,10 85,22 100,12 L100,28 L0,28 Z" fill="url(#spark-grad-canceled)"/>
-                            <path d="M0,22 C20,24 35,26 55,16 C75,10 85,22 100,12" fill="none" stroke="#f43f5e" stroke-width="2.2" stroke-linecap="round"/>
-                        </svg>
-                    </div>
                 </div>
             </div>
         </div>
@@ -558,9 +497,13 @@
                     </label>
 
                     <input
-                        type="date"
+                        type="text"
                         id="addPatientBirthDate"
                         name="birth_date"
+                        inputmode="numeric"
+                        maxlength="10"
+                        placeholder="JJ/MM/AAAA"
+                        autocomplete="bday"
                     >
                 </div>
 

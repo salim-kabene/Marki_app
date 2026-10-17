@@ -82,3 +82,59 @@ function markiJsonException(
     echo json_encode($payload, JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+/**
+ * Formate une date en francais avec le mois ecrit en lettres (ex. 15 mars 2026).
+ */
+function markiFormatFrenchDate(?string $value): string
+{
+    if ($value === null || trim($value) === '') {
+        return '-';
+    }
+
+    $timestamp = is_numeric($value) ? (int) $value : strtotime($value);
+    if ($timestamp === false || $timestamp <= 0) {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+
+    $months = [
+        1 => 'janvier', 2 => 'février', 3 => 'mars', 4 => 'avril',
+        5 => 'mai', 6 => 'juin', 7 => 'juillet', 8 => 'août',
+        9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre'
+    ];
+
+    $day = (int) date('j', $timestamp);
+    $monthNum = (int) date('n', $timestamp);
+    $year = date('Y', $timestamp);
+
+    return sprintf('%d %s %s', $day, $months[$monthNum] ?? '', $year);
+}
+
+/**
+ * Formate une date et heure en francais avec le mois en lettres (ex. 15 mars 2026 a 14:30).
+ */
+function markiFormatFrenchDateTime(?string $value): string
+{
+    if ($value === null || trim($value) === '') {
+        return '-';
+    }
+
+    $timestamp = is_numeric($value) ? (int) $value : strtotime($value);
+    if ($timestamp === false || $timestamp <= 0) {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+
+    $months = [
+        1 => 'janvier', 2 => 'février', 3 => 'mars', 4 => 'avril',
+        5 => 'mai', 6 => 'juin', 7 => 'juillet', 8 => 'août',
+        9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre'
+    ];
+
+    $day = (int) date('j', $timestamp);
+    $monthNum = (int) date('n', $timestamp);
+    $year = date('Y', $timestamp);
+    $time = date('H:i', $timestamp);
+
+    return sprintf('%d %s %s à %s', $day, $months[$monthNum] ?? '', $year, $time);
+}
+

@@ -28,3 +28,4 @@ database/*.sqlite
 
 # Binaires locaux
 tools/bin/
+/markii_db.sql

@@ -8,7 +8,34 @@
     session: app.dataset.session || '',
     csrf: document.querySelector('meta[name="csrf-token"]')?.content || '',
     loading: false,
-    timer: null
+    timer: null,
+    alertEnabled: false,
+    alertsSent: new Set(),
+    audio: null
+  };
+
+  // Une alerte se déclenche quand il ne reste plus que ce nombre de patients devant.
+  const ALERT_AHEAD_THRESHOLD = 1;
+
+  const STEP_STATES = {
+    waiting: {
+      registered: 'done',
+      waiting: 'current',
+      consultation: 'upcoming',
+      notes: { waiting: 'Vous êtes ici', consultation: 'Bientôt !' }
+    },
+    called: {
+      registered: 'done',
+      waiting: 'done',
+      consultation: 'current',
+      notes: { waiting: 'Terminé', consultation: 'C’est votre tour' }
+    },
+    done: {
+      registered: 'done',
+      waiting: 'done',
+      consultation: 'done',
+      notes: { waiting: 'Terminé', consultation: 'Terminée' }
+    }
   };
 
   const STORAGE_PREFIX = 'marki:public-registration:';
@@ -19,7 +46,13 @@
     errorMessage: document.getElementById('status-error-message'),
     content: document.getElementById('status-content'),
     patientName: document.getElementById('status-patient-name'),
+    doctorName: document.getElementById('status-doctor-name'),
     doctorLine: document.getElementById('status-doctor-line'),
+    steps: document.getElementById('status-steps'),
+    stepTime: document.getElementById('status-step-time'),
+    notifyCard: document.getElementById('status-notify-card'),
+    notify: document.getElementById('status-notify'),
+    notifyHint: document.getElementById('status-notify-hint'),
     position: document.getElementById('status-position'),
     createdAt: document.getElementById('status-created-at'),
     label: document.getElementById('status-label'),
@@ -77,12 +110,43 @@
     const date = new Date(normalized);
     if (Number.isNaN(date.getTime())) return value;
     return new Intl.DateTimeFormat('fr-DZ', {
-      day: '2-digit',
-      month: '2-digit',
+      day: 'numeric',
+      month: 'long',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hourCycle: 'h23'
     }).format(date);
+  }
+
+  function formatTime(value) {
+    if (!value) return '—';
+    const date = new Date(String(value).replace(' ', 'T'));
+    if (Number.isNaN(date.getTime())) return '—';
+    return new Intl.DateTimeFormat('fr-DZ', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    }).format(date);
+  }
+
+  function renderSteps(status) {
+    if (!elements.steps) return;
+    const config = STEP_STATES[status] || STEP_STATES.waiting;
+
+    elements.steps.querySelectorAll('[data-step]').forEach(step => {
+      const key = step.dataset.step;
+      const stepState = config[key] || 'upcoming';
+      step.dataset.state = stepState;
+      if (stepState === 'current') {
+        step.setAttribute('aria-current', 'step');
+      } else {
+        step.removeAttribute('aria-current');
+      }
+
+      const note = step.querySelector('[data-step-note]');
+      if (note && config.notes[key]) note.textContent = config.notes[key];
+    });
   }
 
   function guidanceFor(registration) {
@@ -114,16 +178,20 @@
     elements.error.hidden = true;
     elements.content.hidden = false;
 
-    if (elements.patientName) elements.patientName.textContent = patient.name || '';
+    app.dataset.status = registration.status || 'waiting';
+
+    if (elements.patientName) elements.patientName.textContent = patient.name || '—';
+    if (elements.doctorName) elements.doctorName.textContent = doctor.name || '—';
     if (elements.doctorLine) {
-      elements.doctorLine.textContent = [doctor.name, doctor.specialty]
-        .filter(Boolean)
-        .join(' — ');
+      elements.doctorLine.textContent = doctor.specialty || '';
+      elements.doctorLine.hidden = !doctor.specialty;
     }
     if (elements.position) elements.position.textContent = registration.position_number ?? '—';
     if (elements.createdAt) {
-      elements.createdAt.textContent = `Inscrit le ${formatDateTime(registration.created_at)}`;
+      elements.createdAt.textContent = formatDateTime(registration.created_at);
     }
+    if (elements.stepTime) elements.stepTime.textContent = formatTime(registration.created_at);
+    renderSteps(registration.status);
     if (elements.label) {
       elements.label.textContent = registration.status_label || '—';
       elements.label.dataset.status = registration.status || '';
@@ -132,10 +200,8 @@
     if (elements.ahead) elements.ahead.textContent = String(patientsAhead);
     if (elements.aheadNote) {
       elements.aheadNote.textContent = patientsAhead === 0
-        ? 'Vous êtes le prochain patient.'
-        : patientsAhead === 1
-          ? '1 patient doit passer avant vous.'
-          : `${patientsAhead} patients doivent passer avant vous.`;
+        ? 'Vous êtes le prochain'
+        : 'avant votre tour';
     }
     if (elements.guidance) {
       elements.guidance.textContent = guidanceFor(registration);
@@ -147,10 +213,14 @@
       elements.refreshedAt.textContent = new Intl.DateTimeFormat('fr-DZ', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        second: '2-digit',
+        hourCycle: 'h23'
       }).format(new Date());
     }
     if (elements.cancel) elements.cancel.hidden = !registration.can_cancel;
+
+    if (elements.notifyCard) elements.notifyCard.hidden = registration.status !== 'waiting';
+    checkAlert(registration);
 
     if (['done', 'canceled', 'no_show'].includes(registration.status)) {
       clearSavedSessionForCurrentToken();
@@ -189,6 +259,99 @@
     } finally {
       state.loading = false;
       if (elements.refresh) elements.refresh.disabled = false;
+    }
+  }
+
+  function playChime(repeat = 1) {
+    const audio = state.audio;
+    if (!audio) return;
+    if (audio.state === 'suspended') audio.resume().catch(() => {});
+
+    for (let index = 0; index < repeat; index += 1) {
+      const start = audio.currentTime + index * 0.45;
+      [880, 1175].forEach((frequency, toneIndex) => {
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        const toneStart = start + toneIndex * 0.16;
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, toneStart);
+        gain.gain.exponentialRampToValueAtTime(0.25, toneStart + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, toneStart + 0.3);
+        oscillator.connect(gain).connect(audio.destination);
+        oscillator.start(toneStart);
+        oscillator.stop(toneStart + 0.32);
+      });
+    }
+  }
+
+  function alertKeyFor(registration) {
+    if (registration.status === 'called') return 'called';
+    if (
+      registration.status === 'waiting'
+      && Number(registration.patients_ahead ?? 0) <= ALERT_AHEAD_THRESHOLD
+    ) {
+      return 'near';
+    }
+    return '';
+  }
+
+  function sendAlert(key) {
+    const message = key === 'called'
+      ? 'Le cabinet vous appelle. Présentez-vous au secrétariat.'
+      : 'C’est presque votre tour. Préparez-vous à vous présenter.';
+
+    playChime(3);
+    if (typeof navigator.vibrate === 'function') navigator.vibrate([300, 150, 300, 150, 300]);
+
+    if (
+      'Notification' in window
+      && Notification.permission === 'granted'
+      && document.hidden
+    ) {
+      try {
+        new Notification('MARKI', { body: message, tag: 'marki-status' });
+      } catch (error) {
+        // Certains navigateurs mobiles refusent les notifications hors service worker.
+      }
+    }
+  }
+
+  function checkAlert(registration) {
+    const key = alertKeyFor(registration);
+    if (!key || state.alertsSent.has(key)) return;
+    state.alertsSent.add(key);
+    if (state.alertEnabled) sendAlert(key);
+  }
+
+  function setAlertEnabled(enabled) {
+    state.alertEnabled = enabled;
+    if (elements.notify) elements.notify.setAttribute('aria-checked', enabled ? 'true' : 'false');
+    if (elements.notifyHint) {
+      elements.notifyHint.textContent = enabled
+        ? 'Alerte activée. Gardez cette page ouverte pour l’entendre.'
+        : 'Recevez une alerte sonore quand ce sera presque votre tour.';
+    }
+  }
+
+  function toggleAlert() {
+    if (state.alertEnabled) {
+      setAlertEnabled(false);
+      return;
+    }
+
+    // Le son doit être débloqué pendant le geste de l'utilisateur.
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!state.audio && AudioContextClass) state.audio = new AudioContextClass();
+    setAlertEnabled(true);
+    playChime(1);
+
+    if (
+      'Notification' in window
+      && window.isSecureContext
+      && Notification.permission === 'default'
+    ) {
+      Notification.requestPermission().catch(() => {});
     }
   }
 
@@ -235,11 +398,12 @@
       setMessage(error.message, 'error');
     } finally {
       elements.confirmCancel.disabled = false;
-      elements.confirmCancel.textContent = 'Annuler mon inscription';
+      elements.confirmCancel.textContent = 'Confirmer l’annulation';
     }
   }
 
   elements.refresh?.addEventListener('click', () => loadStatus());
+  elements.notify?.addEventListener('click', toggleAlert);
   elements.cancel?.addEventListener('click', openModal);
   elements.confirmCancel?.addEventListener('click', cancelRegistration);
   document.querySelectorAll('[data-close-status-modal]').forEach(button => {

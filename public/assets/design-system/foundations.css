@@ -205,3 +205,9 @@ hr {
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--mk-color-neutral-400);
 }
+
+/* L'attribut hidden doit toujours masquer, même quand un composant
+   définit son propre display (flex, grid…). */
+[hidden] {
+  display: none !important;
+}
